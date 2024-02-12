@@ -109,8 +109,12 @@ class PropsUIPromptConsentFormTable:
         dict["id"] = self.id
         dict["title"] = self.title.toDict()
         dict["data_frame"] = self.data_frame.to_json()
-        dict["description"] = self.description.toDict() if self.description else None
-        dict["visualizations"] = self.visualizations if self.visualizations else None
+        dict["description"] = (
+            self.description.toDict() if self.description is not None else None
+        )
+        dict["visualizations"] = (
+            self.visualizations if self.visualizations is not None else None
+        )
         return dict
 
 
@@ -221,7 +225,12 @@ class PropsUIPageDonation:
 
     platform: str
     header: PropsUIHeader
-    body: PropsUIPromptRadioInput | PropsUIPromptConsentForm | PropsUIPromptFileInput | PropsUIPromptConfirm
+    body: (
+        PropsUIPromptRadioInput
+        | PropsUIPromptConsentForm
+        | PropsUIPromptFileInput
+        | PropsUIPromptConfirm
+    )
     footer: PropsUIFooter
 
     def toDict(self):

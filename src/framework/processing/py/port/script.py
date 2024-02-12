@@ -529,23 +529,21 @@ def extract_comments_and_likes(zipfile):
     )
 
     visualizations = [
-        props.PropsUIChartVisualization(
-            title=props.Translatable(
-                {
-                    "en": "Comments and likes over time",
-                    "nl": "Comments en likes in de loop van de tijd",
-                }
-            ),
+        dict(
+            title={
+                "en": "Comments and likes over time",
+                "nl": "Comments en likes in de loop van de tijd",
+            },
             type="line",
-            group=props.PropsUIChartGroup(column="Date", dateFormat="auto"),
+            group=dict(column="Date", dateFormat="auto"),
             values=[
-                props.PropsUIChartValue(
+                dict(
                     label="Comments",
                     column="Comments",
                     aggregate="sum",
                     addZeroes=True,
                 ),
-                props.PropsUIChartValue(
+                dict(
                     label="Likes",
                     column="Likes",
                     aggregate="sum",
@@ -584,7 +582,7 @@ def extract_viewed(zipfile):
     )
 
     visualizations = [
-        props.PropsUIChartVisualization(
+        dict(
             title=props.Translatable(
                 {
                     "en": "The number of videos and posts you viewed over time",
@@ -592,15 +590,15 @@ def extract_viewed(zipfile):
                 }
             ),
             type="line",
-            group=props.PropsUIChartGroup(column="Date", dateFormat="auto"),
+            group=dict(column="Date", dateFormat="auto"),
             values=[
-                props.PropsUIChartValue(
+                dict(
                     label="Videos",
                     column="Videos",
                     aggregate="sum",
                     addZeroes=True,
                 ),
-                props.PropsUIChartValue(
+                dict(
                     label="Posts",
                     column="Posts",
                     aggregate="sum",
@@ -637,17 +635,15 @@ def extract_session_info(zipfile):
     df = df.drop("Duration", axis=1)
 
     visualizations = [
-        props.PropsUIChartVisualization(
-            title=props.Translatable(
-                {
-                    "en": "Number of minutes spent on Instagram over time (!number don't seem right. Needs double check)",
-                    "nl": "Aantal minuten besteed aan Instagram in de loop van de tijd (!number don't seem right. Needs double check)",
-                }
-            ),
+        dict(
+            title={
+                "en": "Number of minutes spent on Instagram over time (!number don't seem right. Needs double check)",
+                "nl": "Aantal minuten besteed aan Instagram in de loop van de tijd (!number don't seem right. Needs double check)",
+            },
             type="line",
-            group=props.PropsUIChartGroup(column="Start", dateFormat="auto"),
+            group=dict(column="Start", dateFormat="auto"),
             values=[
-                props.PropsUIChartValue(
+                dict(
                     label="Minutes",
                     column="Duration (in minutes)",
                     aggregate="sum",
@@ -762,7 +758,11 @@ class DataDonationProcessor:
 
         tables = [
             props.PropsUIPromptConsentFormTable(
-                table.id, table.title, table.data_frame, table.visualizations
+                table.id,
+                table.title,
+                table.data_frame,
+                None,
+                table.visualizations,
             )
             for table in data
         ]
