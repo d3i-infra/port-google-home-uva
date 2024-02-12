@@ -583,12 +583,10 @@ def extract_viewed(zipfile):
 
     visualizations = [
         dict(
-            title=props.Translatable(
-                {
-                    "en": "The number of videos and posts you viewed over time",
-                    "nl": "Het aantal video's en berichten dat u in de loop van de tijd heeft bekeken",
-                }
-            ),
+            title={
+                "en": "The number of videos and posts you viewed over time",
+                "nl": "Het aantal video's en berichten dat u in de loop van de tijd heeft bekeken",
+            },
             type="line",
             group=dict(column="Date", dateFormat="auto"),
             values=[
