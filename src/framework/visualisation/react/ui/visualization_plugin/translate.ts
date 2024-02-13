@@ -1,11 +1,10 @@
 import { Translatable } from './types'
 
-export function translate (translatable: Translatable, locale: string): string {
+export function translate (translatable: Translatable | string, locale: string): string {
+  if (typeof translatable === 'string') return translatable
   const defaultLocale1: string = 'nl'
   const defaultLocale2: string = 'en'
-  return (
-    translatable[locale] ?? translatable[defaultLocale1] ?? translatable[defaultLocale2] ?? '[missing translation]'
-  )
+  return translatable[locale] ?? translatable[defaultLocale1] ?? translatable[defaultLocale2] ?? '[missing translation]'
 }
 
 export function getTranslations (translatables: Record<string, Translatable>, locale: string): Record<string, string> {

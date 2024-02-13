@@ -635,8 +635,8 @@ def extract_session_info(zipfile):
     visualizations = [
         dict(
             title={
-                "en": "Number of minutes spent on Instagram over time (!number don't seem right. Needs double check)",
-                "nl": "Aantal minuten besteed aan Instagram in de loop van de tijd (!number don't seem right. Needs double check)",
+                "en": "Number of minutes spent on Instagram over time",
+                "nl": "Aantal minuten besteed aan Instagram in de loop van de tijd",
             },
             type="line",
             group=dict(column="Start", dateFormat="auto"),

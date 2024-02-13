@@ -1,4 +1,4 @@
-import { VisualizationType, VisualizationData, Table, zVisualizationData } from '../types'
+import { VisualizationType, VisualizationData, Table } from '../types'
 import { useEffect, useState } from 'react'
 
 type Status = 'loading' | 'success' | 'error'
@@ -24,7 +24,7 @@ export default function useVisualizationData (
       setStatus('loading')
       worker.onmessage = (e: MessageEvent<{ status: Status, visualizationData: VisualizationData }>) => {
         try {
-          setVisualizationData(zVisualizationData.parse(e.data.visualizationData))
+          setVisualizationData(e.data.visualizationData)
           setStatus(e.data.status)
         } catch (e) {
           setVisualizationData(undefined)

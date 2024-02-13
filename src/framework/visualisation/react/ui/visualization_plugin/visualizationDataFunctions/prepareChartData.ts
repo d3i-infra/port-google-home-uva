@@ -1,33 +1,22 @@
 import { formatDate, getTableColumn } from './util'
-import { Table, TickerFormat, ChartVisualizationData, ChartVisualization } from '../types'
+import { Table, TickerFormat, ChartVisualizationData, ChartVisualization, AxisSettings } from '../types'
 
 export async function prepareChartData (
   table: Table,
   visualization: ChartVisualization
 ): Promise<ChartVisualizationData> {
-  if (table.body.rows.length === 0) return emptyVisualizationData(visualization)
+  if (table.body.rows.length === 0) return { type: visualization.type, xKey: '', xLabel: '', yKeys: {}, data: [] }
 
   const aggregate = aggregateData(table, visualization)
-  return createVisualizationData(visualization, aggregate)
+  return createVisualizationData(table, visualization, aggregate)
 }
 
 function createVisualizationData (
+  table: Table,
   visualization: ChartVisualization,
   aggregate: Record<string, PrepareAggregatedData>
 ): ChartVisualizationData {
-  const visualizationData = emptyVisualizationData(visualization)
-
-  for (const aggdata of Object.values(aggregate)) {
-    for (const group of Object.keys(aggdata.values)) {
-      if (visualizationData.yKeys[group] === undefined) {
-        visualizationData.yKeys[group] = {
-          label: group,
-          secondAxis: aggdata.secondAxis,
-          tickerFormat: aggdata.tickerFormat
-        }
-      }
-    }
-  }
+  const visualizationData = initializeVisualizationData(table, visualization)
 
   visualizationData.data = Object.values(aggregate)
     .sort((a: any, b: any) => (a.sortBy < b.sortBy ? -1 : b.sortBy < a.sortBy ? 1 : 0))
@@ -36,7 +25,7 @@ function createVisualizationData (
 
       return {
         ...d.values,
-        [d.xLabel]: d.xValue,
+        [d.xKey]: d.xValue,
         __rowIds: d.rowIds,
         __sortBy: d.sortBy
       }
@@ -45,13 +34,29 @@ function createVisualizationData (
   return visualizationData
 }
 
-function emptyVisualizationData (visualization: ChartVisualization): ChartVisualizationData {
+function initializeVisualizationData (table: Table, visualization: ChartVisualization): ChartVisualizationData {
+  const yKeys: Record<string, AxisSettings> = {}
+  for (const value of visualization.values) {
+    let tickerFormat: TickerFormat = 'default'
+    if (value.aggregate === 'pct' || value.aggregate === 'count_pct') tickerFormat = 'percent'
+
+    if (value.group_by === undefined) {
+      const label = value.label !== undefined ? value.label : value.column
+      yKeys[value.column] = { id: value.column, label, tickerFormat }
+    } else {
+      const uniqueValues = Array.from(new Set(getTableColumn(table, value.group_by)))
+      for (const uniqueValue of uniqueValues) {
+        const id = `${value.column}.GROUP_BY.${uniqueValue}`
+        yKeys[id] = { id, label: uniqueValue, tickerFormat }
+      }
+    }
+  }
+
   return {
     type: visualization.type,
-    xKey: {
-      label: visualization.group.label !== undefined ? visualization.group.label : visualization.group.column
-    },
-    yKeys: {},
+    xKey: visualization.group.column,
+    xLabel: visualization.group.label,
+    yKeys,
     data: []
   }
 }
@@ -61,7 +66,7 @@ function aggregateData (table: Table, visualization: ChartVisualization): Record
 
   const { groupBy, xSortable } = prepareX(table, visualization)
   const rowIds = table.body.rows.map((row) => row.id)
-  const xLabel = visualization.group.label !== undefined ? visualization.group.label : visualization.group.column
+  const xKey = visualization.group.column
 
   const anyAddZeroes = visualization.values.some((value) => value.addZeroes === true)
   if (anyAddZeroes && xSortable != null) {
@@ -69,11 +74,9 @@ function aggregateData (table: Table, visualization: ChartVisualization): Record
       aggregate[uniqueValue] = {
         sortBy: sortby,
         rowIds: {},
-        xLabel,
+        xKey,
         xValue: uniqueValue,
-        values: {},
-        secondAxis: false,
-        tickerFormat: 'default'
+        values: {}
       }
     }
   }
@@ -82,14 +85,15 @@ function aggregateData (table: Table, visualization: ChartVisualization): Record
     // loop over all y values
 
     const aggFun = value.aggregate !== undefined ? value.aggregate : 'count'
-    let tickerFormat: TickerFormat = 'default'
-    if (aggFun === 'pct' || aggFun === 'count_pct') tickerFormat = 'percent'
 
     const yValues = getTableColumn(table, value.column)
     if (yValues.length === 0) throw new Error(`Y column ${table.id}.${value.column} not found`)
 
-    // If group_by column is specified, the columns in the aggregated data will be the unique group_by columns
-    const yGroup = value.group_by !== undefined ? getTableColumn(table, value.group_by) : null
+    // If group_by column is specified, the columns in the aggregated data will be the unique group_by
+    // column values. As suffix we use the value column, separated with .GROUP_BY.. This is used
+    // so that we can relate the aggregated data back to the value specification
+    let yGroup: null | string[] = null
+    if (value.group_by !== undefined) { yGroup = getTableColumn(table, value.group_by).map((v) => `${value.column}.GROUP_BY.${v}`) }
 
     // if missing values should be treated as zero, we need to add the missing values after knowing all groups
     const addZeroes = value.addZeroes ?? false
@@ -105,16 +109,8 @@ function aggregateData (table: Table, visualization: ChartVisualization): Record
         }
       }
 
-      // SHOULD GROUP BE IGNORED IF NOT IN group.levels? MAYBE NOT, BECAUSE
-      // THIS COULD HARM INFORMED CONSENT IF THE RESEARCHER IS UNAWARE OF CERTAIN GROUPS
-      // if (visualization.group.levels !== undefined) {
-      //   // formatLevels has xSortable < 0 if no match with levels
-      //   if (xSortable !== null && xSortable[i] < 0) continue
-      // }
-
       const yValue = yValues[i]
-      const label = value.label !== undefined ? value.label : value.column
-      const group = yGroup != null ? yGroup[i] : label
+      const group = yGroup != null ? yGroup[i] : value.column
 
       const sortBy = xSortable != null ? xSortable[xValue] : groupBy[i]
 
@@ -127,13 +123,12 @@ function aggregateData (table: Table, visualization: ChartVisualization): Record
         aggregate[xValue] = {
           sortBy: sortBy,
           rowIds: {},
-          xLabel,
+          xKey,
           xValue: String(xValue),
-          values: {},
-          secondAxis: value.secondAxis,
-          tickerFormat
+          values: {}
         }
       }
+
       if (aggregate[xValue].rowIds[group] === undefined) aggregate[xValue].rowIds[group] = []
       aggregate[xValue].rowIds[group].push(rowIds[i])
 
@@ -180,7 +175,7 @@ function prepareX (
 
   // ADD CODE TO TRANSFORM TO DATE, BUT THEN ALSO KEEP AN INDEX BASED ON THE DATE ORDER
   if (visualization.group.dateFormat !== undefined) {
-    [groupBy, xSortable] = formatDate(groupBy, visualization.group.dateFormat)
+    ;[groupBy, xSortable] = formatDate(groupBy, visualization.group.dateFormat)
   }
 
   if (visualization.group.levels !== undefined) {
@@ -196,11 +191,10 @@ function prepareX (
 }
 
 export interface PrepareAggregatedData {
-  xLabel: string
+  xKey: string
   xValue: string
   values: Record<string, number>
   rowIds: Record<string, string[]>
   sortBy: number | string
-  secondAxis?: boolean
   tickerFormat?: TickerFormat
 }

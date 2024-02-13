@@ -1,3 +1,4 @@
+import { translate } from '../translate'
 import { AxisSettings, TickerFormat, ChartVisualizationData } from '../types'
 
 import {
@@ -11,19 +12,28 @@ import {
   BarChart,
   Bar,
   AreaChart,
-  Area
+  Area,
+  Label
 } from 'recharts'
 
 interface Props {
   visualizationData: ChartVisualizationData
+  locale: string
 }
 
-export default function RechartsGraph ({ visualizationData }: Props): JSX.Element | null {
+const margin = { top: 5, right: 5, left: 5, bottom: 15 }
+
+export default function RechartsGraph ({ visualizationData, locale }: Props): JSX.Element | null {
+  const xLabel = translate(visualizationData.xLabel ?? visualizationData.xKey, locale)
+  const tickFormatter = getTickFormatter(Object.values(visualizationData.yKeys))
+
   function tooltip (): JSX.Element {
     return (
       <Tooltip
         allowEscapeViewBox={{ x: false, y: false }}
         labelStyle={{ marginBottom: '0.5rem' }}
+        formatter={tickFormatter}
+        labelFormatter={(value: string) => `${xLabel}: ${value}`}
         contentStyle={{
           fontSize: '0.8rem',
           lineHeight: '0.8rem',
@@ -37,14 +47,13 @@ export default function RechartsGraph ({ visualizationData }: Props): JSX.Elemen
   function axes (minTickGap: number): JSX.Element | null {
     const hasVisualizationData = Boolean(visualizationData)
     if (!hasVisualizationData) return null
-    const secondary = Object.values(visualizationData.yKeys).findIndex((yKey: AxisSettings) => yKey.secondAxis) !== -1
-    const { tickFormatter, tickFormatter2 } = getTickFormatters(Object.values(visualizationData.yKeys))
 
     return (
       <>
-        <XAxis dataKey={visualizationData.xKey.label} minTickGap={minTickGap} />
-        <YAxis yAxisId='left' tickFormatter={tickFormatter} />
-        {secondary && <YAxis yAxisId='right' orientation='right' tickFormatter={tickFormatter2} />}
+        <XAxis dataKey={visualizationData.xKey} minTickGap={minTickGap} fontSize={12}>
+          <Label className=' font-bold text-sm' value={xLabel} offset={-6} position='insideBottom' />
+        </XAxis>
+        <YAxis yAxisId='left' tickFormatter={tickFormatter} fontSize={12} />
       </>
     )
   }
@@ -63,9 +72,13 @@ export default function RechartsGraph ({ visualizationData }: Props): JSX.Elemen
 
   let chart: JSX.Element | null = null
 
+  function getYLabel (yKey: AxisSettings): string {
+    return translate(yKey.label ?? yKey.id, locale)
+  }
+
   if (visualizationData.type === 'line') {
     chart = (
-      <LineChart data={visualizationData.data}>
+      <LineChart data={visualizationData.data} margin={margin}>
         {axes(20)}
         {tooltip()}
         {legend()}
@@ -73,10 +86,11 @@ export default function RechartsGraph ({ visualizationData }: Props): JSX.Elemen
           const { color, dash } = getLineStyle(i)
           return (
             <Line
-              key={yKey.label}
-              yAxisId={yKey.secondAxis ?? false ? 'right' : 'left'}
+              key={yKey.id}
+              yAxisId='left'
               type='monotone'
-              dataKey={yKey.label}
+              name={getYLabel(yKey)}
+              dataKey={yKey.id}
               dot={false}
               strokeWidth={2}
               stroke={color}
@@ -90,20 +104,13 @@ export default function RechartsGraph ({ visualizationData }: Props): JSX.Elemen
 
   if (visualizationData.type === 'bar') {
     chart = (
-      <BarChart data={visualizationData.data}>
+      <BarChart data={visualizationData.data} margin={margin}>
         {axes(0)}
         {tooltip()}
         {legend()}
         {Object.values(visualizationData.yKeys).map((yKey: AxisSettings, i: number) => {
           const { color } = getLineStyle(i)
-          return (
-            <Bar
-              key={yKey.label}
-              yAxisId={yKey.secondAxis ?? false ? 'right' : 'left'}
-              dataKey={yKey.label}
-              fill={color}
-            />
-          )
+          return <Bar key={yKey.id} yAxisId='left' dataKey={yKey.id} name={getYLabel(yKey)} fill={color} />
         })}
       </BarChart>
     )
@@ -111,20 +118,14 @@ export default function RechartsGraph ({ visualizationData }: Props): JSX.Elemen
 
   if (visualizationData.type === 'area') {
     chart = (
-      <AreaChart data={visualizationData.data}>
+      <AreaChart data={visualizationData.data} margin={margin}>
         {axes(20)}
         {tooltip()}
         {legend()}
         {Object.values(visualizationData.yKeys).map((yKey: AxisSettings, i: number) => {
           const { color } = getLineStyle(i)
           return (
-            <Area
-              key={yKey.label}
-              yAxisId={yKey.secondAxis ?? false ? 'right' : 'left'}
-              dataKey={yKey.label}
-              fill={color}
-              type='monotone'
-            />
+            <Area key={yKey.id} yAxisId='left' dataKey={yKey.id} name={getYLabel(yKey)} fill={color} type='monotone' />
           )
         })}
       </AreaChart>
@@ -150,29 +151,18 @@ function getLineStyle (index: number): { color: string, dash: string } {
   return { color: COLORS[row], dash: DASHES[column] }
 }
 
-function getTickFormatters (yKeys: AxisSettings[]): {
-  tickFormatter: ((value: number) => string) | undefined
-  tickFormatter2: ((value: number) => string) | undefined
-} {
+function getTickFormatter (yKeys: AxisSettings[]): ((value: number) => string) | undefined {
   let tickerFormat: TickerFormat | undefined
-  let tickerFormat2: TickerFormat | undefined
 
   for (const yKey of yKeys) {
-    if (!(yKey.secondAxis ?? false)) {
-      if (tickerFormat === undefined) tickerFormat = yKey.tickerFormat
-      if (tickerFormat !== yKey.tickerFormat) tickerFormat = 'default'
-    } else {
-      if (tickerFormat2 === undefined) tickerFormat2 = yKey.tickerFormat
-      if (tickerFormat2 !== yKey.tickerFormat) tickerFormat2 = 'default'
-    }
+    if (tickerFormat === undefined) tickerFormat = yKey.tickerFormat
+    if (tickerFormat !== yKey.tickerFormat) tickerFormat = 'default'
   }
 
-  const tickFormatter = getTickFormatter(tickerFormat ?? 'default')
-  const tickFormatter2 = getTickFormatter(tickerFormat2 ?? 'default')
-  return { tickFormatter, tickFormatter2 }
+  return tickFormatter(tickerFormat ?? 'default')
 }
 
-function getTickFormatter (format: TickerFormat): ((value: number) => string) | undefined {
-  if (format === 'percent') return (value: number) => `${value}%`
+function tickFormatter (type: TickerFormat): undefined | ((value: number) => string) {
+  if (type === 'percent') return (value: number) => `${value}%`
   return undefined
 }

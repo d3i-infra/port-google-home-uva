@@ -1,12 +1,4 @@
-import TextBundle from '../../../../text_bundle'
-import { Translator } from '../../../../translator'
-import {
-  VisualizationData,
-  ChartVisualizationData,
-  TextVisualizationData,
-  zTable,
-  zVisualizationType
-} from './types'
+import { VisualizationData, ChartVisualizationData, TextVisualizationData, zTable, zVisualizationType } from './types'
 import { memo, useEffect, useMemo, useState } from 'react'
 
 import useVisualizationData from './visualizationDataFunctions/useVisualizationData'
@@ -16,7 +8,7 @@ import VisxWordcloud from './figures/visx_wordcloud'
 import { zoomInIcon, zoomOutIcon } from './zoom_icons'
 import { z } from 'zod'
 import { Loader } from './ui/loader'
-import { translate } from './translate'
+import { getTranslations, translate } from './translate'
 
 const doubleTypes = ['wordcloud']
 type ShowStatus = 'hidden' | 'visible' | 'double'
@@ -101,7 +93,7 @@ export const FigureComponent = ({
   }
 
   const canDouble = doubleTypes.includes(visualization.type)
-  const { errorMsg, noDataMsg } = useMemo(() => prepareCopy(locale), [locale])
+  const { errorMsg, noDataMsg } = useMemo(() => prepareTexts(locale), [locale])
 
   if (visualizationData == null && status === 'loading') {
     if (longLoading) return <Loader />
@@ -133,6 +125,7 @@ export const FigureComponent = ({
               visualizationData={visualizationData}
               fallbackMessage={noDataMsg}
               loading={resizeLoading}
+              locale={locale}
             />
           </div>
         </div>
@@ -145,11 +138,13 @@ export const RenderVisualization = memo(
   ({
     visualizationData,
     fallbackMessage,
-    loading
+    loading,
+    locale
   }: {
     visualizationData: VisualizationData | undefined
     fallbackMessage: string
     loading: boolean
+    locale: string
   }): JSX.Element | null => {
     if (visualizationData == null) return null
 
@@ -160,7 +155,7 @@ export const RenderVisualization = memo(
     if (['line', 'bar', 'area'].includes(visualizationData.type)) {
       const chartVisualizationData: ChartVisualizationData = visualizationData as ChartVisualizationData
       if (chartVisualizationData.data.length === 0) return fallback
-      return <RechartsGraph visualizationData={chartVisualizationData} />
+      return <RechartsGraph visualizationData={chartVisualizationData} locale={locale} />
     }
 
     if (visualizationData.type === 'wordcloud') {
@@ -173,13 +168,17 @@ export const RenderVisualization = memo(
   }
 )
 
-function prepareCopy (locale: string): Record<string, string> {
-  return {
-    errorMsg: Translator.translate(errorMsg, locale),
-    noDataMsg: Translator.translate(noDataMsg, locale)
+function prepareTexts (locale: string): Record<string, string> {
+  const texts = {
+    errorMsg: {
+      en: 'Could not create visualization',
+      nl: 'Kon visualisatie niet maken'
+    },
+    noDataMsg: {
+      en: 'No data',
+      nl: 'Geen data'
+    }
   }
+
+  return getTranslations(texts, locale)
 }
-
-const noDataMsg = new TextBundle().add('en', 'No data').add('nl', 'Geen data')
-
-const errorMsg = new TextBundle().add('en', 'Could not create visualization').add('nl', 'Kon visualisatie niet maken')

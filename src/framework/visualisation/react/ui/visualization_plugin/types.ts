@@ -12,6 +12,9 @@ import { z } from 'zod'
 export const zTranslatable = z.record(z.string())
 export type Translatable = z.infer<typeof zTranslatable>
 
+export const zLabel = z.union([zTranslatable, z.string()])
+export type Label = z.infer<typeof zLabel>
+
 // Table type, but only taking what we need
 export const zTable = z.object({
   id: z.string(),
@@ -52,14 +55,15 @@ export type TextVisualizationType = z.infer<typeof zTextVisualizationType>
 
 // Chart Visualizations
 
+// External types (need schema)
 export const zAxis = z.object({
-  label: z.string().optional(),
+  label: zLabel.optional(),
   column: z.string()
 })
 export type Axis = z.infer<typeof zAxis>
 
 export const zAggregationGroup = z.object({
-  label: z.string().optional(),
+  label: zLabel.optional(),
   column: z.string(),
   dateFormat: zDateFormat.optional(),
   range: z.array(z.number()).optional(),
@@ -68,37 +72,15 @@ export const zAggregationGroup = z.object({
 export type AggregationGroup = z.infer<typeof zAggregationGroup>
 
 export const zAggregationValue = z.object({
-  label: z.string().optional(),
+  label: zLabel.optional(),
   column: z.string(),
   aggregate: zAggregationFunction.optional(),
   group_by: z.string().optional(),
-  secondAxis: z.boolean().optional(),
   z: z.string().optional(),
   zAggregate: zAggregationFunction.optional(),
   addZeroes: z.boolean().optional()
 })
 export type AggregationValue = z.infer<typeof zAggregationValue>
-
-export const zTickerFormat = z.enum(['percent', 'default'])
-export type TickerFormat = z.infer<typeof zTickerFormat>
-
-export const zXType = z.enum(['string', 'date'])
-export type XType = z.infer<typeof zXType>
-
-export const zAxisSettings = z.object({
-  label: z.string(),
-  secondAxis: z.boolean().optional(),
-  tickerFormat: zTickerFormat.optional()
-})
-export type AxisSettings = z.infer<typeof zAxisSettings>
-
-export const zChartVisualizationData = z.object({
-  type: zChartVisualizationType,
-  data: z.array(z.record(z.any())),
-  xKey: zAxisSettings,
-  yKeys: z.record(zAxisSettings)
-})
-export type ChartVisualizationData = z.infer<typeof zChartVisualizationData>
 
 export const zChartVisualization = zVisualizationProps.merge(
   z.object({
@@ -109,21 +91,27 @@ export const zChartVisualization = zVisualizationProps.merge(
 )
 export type ChartVisualization = z.infer<typeof zChartVisualization>
 
+// Internal types
+export type TickerFormat = 'percent' | 'default'
+export type XType = 'string' | 'date'
+
+export interface AxisSettings {
+  id: string
+  label: Translatable | string
+  tickerFormat: TickerFormat
+}
+
+export interface ChartVisualizationData {
+  type: ChartVisualizationType
+  data: Array<Record<string, any>>
+  xKey: string
+  xLabel: string | Translatable | undefined
+  yKeys: Record<string, AxisSettings>
+}
+
 // Text Visualizations
 
-export const zScoredTerm = z.object({
-  text: z.string(),
-  value: z.number(),
-  importance: z.number(),
-  rowIds: z.array(z.string()).optional()
-})
-export type ScoredTerm = z.infer<typeof zScoredTerm>
-
-export const zTextVisualizationData = z.object({
-  type: zTextVisualizationType,
-  topTerms: z.array(zScoredTerm)
-})
-export type TextVisualizationData = z.infer<typeof zTextVisualizationData>
+// External types (need schema)
 
 export const zTextVisualization = zVisualizationProps.merge(
   z.object({
@@ -136,10 +124,23 @@ export const zTextVisualization = zVisualizationProps.merge(
 )
 export type TextVisualization = z.infer<typeof zTextVisualization>
 
+// Internal types
+
+export interface ScoredTerm {
+  text: string
+  value: number
+  importance: number
+  rowIds?: string[]
+}
+
+export interface TextVisualizationData {
+  type: TextVisualizationType
+  topTerms: ScoredTerm[]
+}
+
 // Visualization Type union
 
-export const zVisualizationData = z.union([zChartVisualizationData, zTextVisualizationData])
-export type VisualizationData = z.infer<typeof zVisualizationData>
+export type VisualizationData = ChartVisualizationData | TextVisualizationData
 
 export const zVisualizationType = z.union([zChartVisualization, zTextVisualization])
 export type VisualizationType = z.infer<typeof zVisualizationType>
