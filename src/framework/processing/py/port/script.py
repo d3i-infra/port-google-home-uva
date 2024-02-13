@@ -252,15 +252,6 @@ def extract_summary_data(data):
 
 
 def extract_videos_viewed(data):
-    # Based on comment Sebastian: do get all links for viewed videos
-    # videos = get_all_first(
-    #     get_date_filtered_items(get_activity_video_browsing_list_data(data))
-    # )
-
-    # video_counts = get_count_by_date_key(videos, hourly_key)
-    # if not video_counts:
-    #     return
-
     videos = get_activity_video_browsing_list_data(data)
 
     df = pd.DataFrame(videos, columns=["Date", "Link"])
@@ -271,8 +262,8 @@ def extract_videos_viewed(data):
     visualizations = [
         dict(
             title={
-                "en": "Average number of videos watched per hour of the day",
-                "nl": "Gemiddeld aantal videos bekeken per uur van de dag",
+                "en": "At what time of the day are you most active on TikTok?",
+                "nl": "Op welk tijdstip van de dag ben jij het meest actief op TikTok?",
             },
             type="bar",
             group=dict(column="Date", label="Hour of the day", dateFormat="hour_cycle"),
