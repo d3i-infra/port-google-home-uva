@@ -241,12 +241,7 @@ def extract_summary_data(data):
             {"en": "Summary information", "nl": "Samenvatting gegevens"}
         ),
         pd.DataFrame(summary_data),
-        props.Translatable(
-            {
-                "en": "Here we can now add a description per table to better help the user understand what the data is about. The description should be short. Say about one to three sentences",
-                "nl": "Hier kunnen we nu een beschrijving per tabel toevoegen om de gebruiker beter te helpen begrijpen waar de gegevens over gaan. De beschrijving moet kort zijn. Zeg ongeveer één tot drie zinnen",
-            }
-        ),
+        None,
         None,
     )
 
@@ -259,18 +254,24 @@ def extract_videos_viewed(data):
     df["Timeslot"] = map_to_timeslot(date.dt.hour)
     df = df.reindex(columns=["Date", "Timeslot", "Link"])
 
+    description = props.Translatable(
+        {
+            "en": "This table contains the videos you watched on TikTok",
+        }
+    )
+
     visualizations = [
         dict(
             title={
-                "en": "At what time of the day are you most active on TikTok?",
-                "nl": "Op welk tijdstip van de dag ben jij het meest actief op TikTok?",
+                "en": "The percentage of videos viewed within each hour from your daily total",
+                "nl": "Het percentage van bekeken video's binnen elk uur van je dagelijkse totaal",
             },
             type="bar",
             group=dict(column="Date", label="Hour of the day", dateFormat="hour_cycle"),
             values=[
                 dict(
                     column="Link",
-                    label="Percentage of videos watched",
+                    label="Percentage of videos viewed",
                     aggregate="count_pct",
                     addZeroes=True,
                 )
@@ -282,7 +283,7 @@ def extract_videos_viewed(data):
         "tiktok_videos_viewed",
         props.Translatable({"en": "Video views", "nl": "Videos gezien"}),
         df,
-        None,
+        description,
         visualizations,
     )
 
@@ -304,11 +305,17 @@ def extract_video_posts(data):
     df = df.reset_index(drop=True)
     df = df.reindex(columns=["Date", "Timeslot", "Videos", "Likes received"])
 
+    description = props.Translatable(
+        {
+            "en": "This table contains the number of videos you yourself posted and the number of likes you received. For anonymization, videos are grouped by the hour they were posted and the exact time removed",
+        }
+    )
+
     return ExtractionResult(
         "tiktok_posts",
         props.Translatable({"en": "Video posts", "nl": "Video posts"}),
         df,
-        None,
+        description,
         None,
     )
 
@@ -346,24 +353,30 @@ def extract_comments_and_likes(data):
     df["Comment posts"] = df["Comment posts"].astype(int)
     df["Likes given"] = df["Likes given"].astype(int)
 
+    description = props.Translatable(
+        {
+            "en": "This table contains the number of likes you gave and comments you made. For anonymization, the exact time of the comment or like is removed and the comments and likes are grouped by the hour",
+        }
+    )
+
     visualizations = [
         dict(
             title={
-                "en": "Average number of comments and likes for every hour of the day",
-                "nl": "Gemiddeld aantal comments en likes per uur van de dag",
+                "en": "The average number of likes and comments you gave within each hour of the day",
+                "nl": "The gemiddelde aantal likes en comments dat je gaf binnen elk uur van de dag",
             },
             type="bar",
             group=dict(column="Date", label="Hour of the day", dateFormat="hour_cycle"),
             values=[
                 dict(
                     column="Comment posts",
-                    label="Average nr. of comments",
+                    label="Average number of comments made",
                     aggregate="mean",
                     addZeroes=True,
                 ),
                 dict(
                     column="Likes given",
-                    label="Average nr. of posts",
+                    label="Average number of likes given",
                     aggregate="mean",
                     addZeroes=True,
                 ),
@@ -375,7 +388,7 @@ def extract_comments_and_likes(data):
         "tiktok_comments_and_likes",
         props.Translatable({"en": "Comments and likes", "nl": "Comments en likes"}),
         df,
-        None,
+        description,
         visualizations,
     )
 
@@ -397,30 +410,65 @@ def extract_session_info(data):
     df = df.drop("End", axis=1)
     df = df.drop("Duration", axis=1)
 
+    description = props.Translatable(
+        {
+            "en": "This table contains the start date and duration of your TikTok sessions",
+        }
+    )
+
     visualizations = [
         dict(
             title={
-                "en": "Number of minutes spent on TikTok",
-                "nl": "Aantal minuten besteed aan TikTok",
+                "en": "Number of minutes spent on TikTok per month",
             },
             type="line",
-            group=dict(column="Start", label="Date", dateFormat="auto"),
+            group=dict(column="Start", label="Date", dateFormat="month"),
             values=[
                 dict(
                     column="Duration (in minutes)",
-                    label="Nr. of minutes",
+                    label="Number of minutes",
                     aggregate="sum",
                     addZeroes=True,
                 )
             ],
-        )
+        ),
+        dict(
+            title={
+                "en": "Average time spent on TikTok per day of the week",
+            },
+            type="line",
+            group=dict(column="Start", label="Date", dateFormat="weekday_cycle"),
+            values=[
+                dict(
+                    column="Duration (in minutes)",
+                    label="Number of minutes",
+                    aggregate="pct",
+                    addZeroes=True,
+                )
+            ],
+        ),
+        dict(
+            title={
+                "en": "Average time spent on TikTok per hour of the day",
+            },
+            type="line",
+            group=dict(column="Start", label="Date", dateFormat="hour_cycle"),
+            values=[
+                dict(
+                    column="Duration (in minutes)",
+                    label="Number of minutes",
+                    aggregate="pct",
+                    addZeroes=True,
+                )
+            ],
+        ),
     ]
 
     return ExtractionResult(
         "tiktok_session_info",
         props.Translatable({"en": "Session information", "nl": "Sessie informatie"}),
         df,
-        None,
+        description,
         visualizations,
     )
 
@@ -436,17 +484,24 @@ def extract_direct_messages(data):
         table["Anonymous ID"].append(anon_ids[item["From"]])
         table["Sent"].append(parse_datetime(item["Date"]).strftime("%Y-%m-%d %H:%M"))
 
+    description = props.Translatable(
+        {
+            "en": "This table contains the times at which you sent or received direct messages. The content of the messages is not included, and user names are replaced with anonymous IDs.",
+        }
+    )
+
     return ExtractionResult(
         "tiktok_direct_messages",
         props.Translatable(
             {"en": "Direct Message Activity", "nl": "Berichten activiteit"}
         ),
         pd.DataFrame(table),
-        None,
+        description,
         None,
     )
 
 
+## REMOVED BY REQUEST FROM CAMBRIDGE (see notion)
 def extract_comment_activity(data):
     comments = get_in(data, "Comment", "Comments", "CommentsList")
     if comments is None:
@@ -464,6 +519,7 @@ def extract_comment_activity(data):
     )
 
 
+## REMOVED BY REQUEST FROM CAMBRIDGE (see notion)
 def extract_videos_liked(data):
     favorite_videos = get_in(data, "Activity", "Favorite Videos", "FavoriteVideoList")
     if favorite_videos is None:
@@ -490,8 +546,6 @@ def extract_tiktok_data(zip_file):
         extract_videos_viewed,
         extract_session_info,
         extract_direct_messages,
-        extract_comment_activity,
-        extract_videos_liked,
     ]
     for data in get_json_data_from_file(zip_file):
         return [
@@ -604,7 +658,7 @@ class DataDonationProcessor:
         description = props.Translatable(
             {
                 "en": """Determine whether you would like to donate the data below. Carefully check the data and adjust when required. With your donation you contribute to the previously described research. Thank you in advance.
-                    The tables below list the types of data that you can donate from your Instagram package. Please note that you are only donating information about the number of followers, likes, comments, posts, and messages you have sent or received. You will only donate anonymous data. So no information about the content of your posts, messages, or comments is included. You will also not share any information about who you interact with on Instagram (e.g., follow, like, comment on). If you DO NOT want to donate any of the information in the table below, you can select the row and delete it from your data donation in the table below.""",
+                    The tables below list the types of data that you can donate from your TikTok package. Please note that you are only donating information about the number of followers, likes, comments, posts, and messages you have sent or received. You will only donate anonymous data. So no information about the content of your posts, messages, or comments is included. You will also not share any information about who you interact with on TikTok (e.g., follow, like, comment on). If you DO NOT want to donate any of the information in the table below, you can select the row and delete it from your data donation in the table below.""",
             }
         )
         consent_result = yield render_donation_page(
