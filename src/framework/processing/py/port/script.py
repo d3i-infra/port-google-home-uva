@@ -422,7 +422,7 @@ def extract_session_info(data):
                 "en": "Number of minutes spent on TikTok per month",
             },
             type="line",
-            group=dict(column="Start", label="Date", dateFormat="month"),
+            group=dict(column="Start", label="Month", dateFormat="month"),
             values=[
                 dict(
                     column="Duration (in minutes)",
@@ -437,7 +437,9 @@ def extract_session_info(data):
                 "en": "Average time spent on TikTok per day of the week",
             },
             type="line",
-            group=dict(column="Start", label="Date", dateFormat="weekday_cycle"),
+            group=dict(
+                column="Start", label="Day of the week", dateFormat="weekday_cycle"
+            ),
             values=[
                 dict(
                     column="Duration (in minutes)",
@@ -452,7 +454,9 @@ def extract_session_info(data):
                 "en": "Average time spent on TikTok per hour of the day",
             },
             type="line",
-            group=dict(column="Start", label="Date", dateFormat="hour_cycle"),
+            group=dict(
+                column="Start", label="Hour of the day", dateFormat="hour_cycle"
+            ),
             values=[
                 dict(
                     column="Duration (in minutes)",
