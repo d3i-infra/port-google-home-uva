@@ -389,6 +389,7 @@ export interface TableContext {
   originalBody: PropsUITableBody
   deletedRows: string[][]
   visualizations?: any[]
+  folded: boolean
 }
 
 export type TableWithContext = TableContext & PropsUITable

@@ -15,25 +15,21 @@ interface TableContainerProps {
   locale: string
 }
 
-export const TableContainer = ({
-  id,
-  table,
-  updateTable,
-  locale
-}: TableContainerProps): JSX.Element => {
-  const tableVisualizations =
-    table.visualizations != null ? table.visualizations : []
+export const TableContainer = ({ id, table, updateTable, locale }: TableContainerProps): JSX.Element => {
+  const tableVisualizations = table.visualizations != null ? table.visualizations : []
   const [searchFilterIds, setSearchFilterIds] = useState<Set<string>>()
   const [search, setSearch] = useState<string>('')
   const lastSearch = useRef<string>('')
   const text = useMemo(() => getTranslations(locale), [locale])
-  const [show, setShow] = useState<boolean>(false)
+  const [show, setShow] = useState<boolean>(!table.folded)
 
   useEffect(() => {
     const timer = setTimeout(() => {
       const ids = searchRows(table.originalBody.rows, search)
       setSearchFilterIds(ids)
-      if (search !== '' && lastSearch.current === '') { setTimeout(() => setShow(true), 10) }
+      if (search !== '' && lastSearch.current === '') {
+        setTimeout(() => setShow(true), 10)
+      }
       lastSearch.current = search
     }, 300)
     return () => clearTimeout(timer)
@@ -41,9 +37,7 @@ export const TableContainer = ({
 
   const searchedTable = useMemo(() => {
     if (searchFilterIds === undefined) return table
-    const filteredRows = table.body.rows.filter((row) =>
-      searchFilterIds.has(row.id)
-    )
+    const filteredRows = table.body.rows.filter((row) => searchFilterIds.has(row.id))
     return { ...table, body: { ...table.body, rows: filteredRows } }
   }, [table, searchFilterIds])
 
@@ -84,44 +78,24 @@ export const TableContainer = ({
       className='p-3 md:p-4 lg:p-6 flex flex-col gap-4 w-full overflow-hidden border-[0.2rem] border-grey4 rounded-lg'
     >
       <div className='flex flex-wrap '>
-        <div
-          key='Title'
-          className='flex sm:flex-row justify-between w-full gap-1 mb-2'
-        >
+        <div key='Title' className='flex sm:flex-row justify-between w-full gap-1 mb-2'>
           <Title4 text={table.title} margin='' />
 
           {unfilteredRows > 0
             ? (
-              <SearchBar
-                placeholder={text.searchPlaceholder}
-                search={search}
-                onSearch={setSearch}
-              />
+              <SearchBar placeholder={text.searchPlaceholder} search={search} onSearch={setSearch} />
               )
             : null}
         </div>
-        <div
-          key='Description'
-          className='flex flex-col w-full mb-2 text-base md:text-lg font-body max-w-2xl'
-        >
+        <div key='Description' className='flex flex-col w-full mb-2 text-base md:text-lg font-body max-w-2xl'>
           <p>{table.description}</p>
         </div>
-        <div
-          key='TableSummary'
-          className='flex items-center justify-between w-full mt-1 pt-1 rounded '
-        >
-          <TableItems
-            table={table}
-            searchedTable={searchedTable}
-            handleUndo={handleUndo}
-            locale={locale}
-          />
+        <div key='TableSummary' className='flex items-center justify-between w-full mt-1 pt-1 rounded '>
+          <TableItems table={table} searchedTable={searchedTable} handleUndo={handleUndo} locale={locale} />
 
           <button
             key={show ? 'animate' : ''}
-            className={`flex end gap-3 animate-fadeIn ${
-              unfilteredRows === 0 ? 'hidden' : ''
-            }`}
+            className={`flex end gap-3 animate-fadeIn ${unfilteredRows === 0 ? 'hidden' : ''}`}
             onClick={() => setShow(!show)}
           >
             <div key='zoomIcon' className='text-primary'>
@@ -169,10 +143,7 @@ export const TableContainer = ({
   )
 }
 
-function deleteTableRows (
-  table: TableWithContext,
-  deletedRows: string[][]
-): TableWithContext {
+function deleteTableRows (table: TableWithContext, deletedRows: string[][]): TableWithContext {
   const deleteIds = new Set<string>()
   for (const deletedSet of deletedRows) {
     for (const id of deletedSet) {
@@ -190,10 +161,7 @@ function deleteTableRows (
   }
 }
 
-function searchRows (
-  rows: PropsUITableRow[],
-  search: string
-): Set<string> | undefined {
+function searchRows (rows: PropsUITableRow[], search: string): Set<string> | undefined {
   if (search.trim() === '') return undefined
 
   // Not sure whether it's better to look for one of the words or exact string.
@@ -203,7 +171,9 @@ function searchRows (
   const query = [search.trim()]
 
   const regexes: RegExp[] = []
-  for (const q of query) { regexes.push(new RegExp(q.replace(/[-/\\^$*+?.()|[\]{}]/, '\\$&'), 'i')) }
+  for (const q of query) {
+    regexes.push(new RegExp(q.replace(/[-/\\^$*+?.()|[\]{}]/, '\\$&'), 'i'))
+  }
 
   const ids = new Set<string>()
   for (const row of rows) {
@@ -269,7 +239,5 @@ function getTranslations (locale: string): Record<string, string> {
 const translations = {
   searchPlaceholder: new TextBundle().add('en', 'Search').add('nl', 'Zoeken'),
   showTable: new TextBundle().add('en', 'Show table').add('nl', 'Tabel tonen'),
-  hideTable: new TextBundle()
-    .add('en', 'Hide table')
-    .add('nl', 'Tabel verbergen')
+  hideTable: new TextBundle().add('en', 'Hide table').add('nl', 'Tabel verbergen')
 }

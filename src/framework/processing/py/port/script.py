@@ -12,7 +12,7 @@ from collections import defaultdict, namedtuple
 from contextlib import suppress
 
 ##########################
-# TikTok file processing #
+# Instagram file processing #
 ##########################
 
 filter_start = datetime.datetime(1990, 1, 1)
@@ -257,6 +257,7 @@ def extract_summary_data(zipfile):
             {"en": "Summary information", "nl": "Samenvatting gegevens"}
         ),
         pd.DataFrame(summary_data),
+        None,
         visualizations,
     )
 
@@ -276,6 +277,12 @@ def extract_direct_message_activity(zipfile):
     df = pd.DataFrame({"Anonymous ID": sender_ids, "Sent": timestamps})
     df["Sent"] = pd.to_datetime(df["Sent"]).dt.strftime("%Y-%m-%d %H:%M")
 
+    description = props.Translatable(
+        {
+            "en": "This table shows the times of the messages sent or received by you. The message content is not included, and names have been anonymized.",
+        }
+    )
+
     visualizations = [
         dict(
             title={
@@ -292,7 +299,23 @@ def extract_direct_message_activity(zipfile):
                     addZeroes=True,
                 )
             ],
-        )
+        ),
+        dict(
+            title={
+                "en": "Direct message activity per hour of the day",
+                "nl": "Direct message activiteit per uur van de dag",
+            },
+            type="bar",
+            group=dict(column="Sent", dateFormat="hour_cycle"),
+            values=[
+                dict(
+                    label="Messages",
+                    column="Anonymous ID",
+                    aggregate="count",
+                    addZeroes=True,
+                )
+            ],
+        ),
     ]
 
     return ExtractionResult(
@@ -301,10 +324,12 @@ def extract_direct_message_activity(zipfile):
             {"en": "Direct message activity", "nl": "Bericht activiteit"}
         ),
         df,
+        description,
         visualizations,
     )
 
 
+## REMOVED ON REQUEST BY CAMBRIDGE (see notion)
 def extract_comment_activity(zipfile):
     timestamps = []
     for data in glob_json(zipfile, "comments/post_comments.json"):
@@ -327,7 +352,6 @@ def extract_comment_activity(zipfile):
             values=[
                 dict(
                     label="Comment activity",
-                    column="Posted",
                     aggregate="count",
                     addZeroes=True,
                 )
@@ -339,6 +363,7 @@ def extract_comment_activity(zipfile):
         "instagram_comment_activity",
         props.Translatable({"en": "Comment activity", "nl": "Commentaar activiteit"}),
         df,
+        None,
         visualizations,
     )
 
@@ -394,6 +419,7 @@ def extract_posts_liked(zipfile):
         "instagram_posts_liked",
         props.Translatable({"en": "Posts Liked", "nl": "Geliked"}),
         df,
+        None,
         visualizations,
     )
 
@@ -476,6 +502,12 @@ def extract_video_posts(zipfile):
         (video_timestamps, "Videos"), (stories_timestamps(zipfile), "Stories")
     )
 
+    description = props.Translatable(
+        {
+            "en": "This table shows how many times you have posted content in either your feed or your story. For anonymization purposes, the exact time of the post is not shown, but grouped by the hour.",
+        }
+    )
+
     visualizations = [
         dict(
             title={
@@ -498,12 +530,35 @@ def extract_video_posts(zipfile):
                     addZeroes=True,
                 ),
             ],
-        )
+        ),
+        dict(
+            title={
+                "en": "Videos and stories per hour of the day",
+                "nl": "Video's en stories per uur van de dag",
+            },
+            type="bar",
+            group=dict(column="Date", label="Hour", dateFormat="hour_cycle"),
+            values=[
+                dict(
+                    label="Videos",
+                    column="Videos",
+                    aggregate="sum",
+                    addZeroes=True,
+                ),
+                dict(
+                    label="Stories",
+                    column="Stories",
+                    aggregate="sum",
+                    addZeroes=True,
+                ),
+            ],
+        ),
     ]
     return ExtractionResult(
         "instagram_video_posts",
         props.Translatable({"en": "Posts", "nl": "Posts"}),
         df,
+        description,
         visualizations,
     )
 
@@ -544,14 +599,20 @@ def extract_comments_and_likes(zipfile):
         (comment_timestamps, "Comments"), (likes_timestamps, "Likes")
     )
 
+    description = props.Translatable(
+        {
+            "en": "This table shows how many times you have liked or commented content on Instagram.",
+        }
+    )
+
     visualizations = [
         dict(
             title={
-                "en": "Comments and likes over time",
-                "nl": "Comments en likes in de loop van de tijd",
+                "en": "Comments and likes per month",
+                "nl": "Comments en likes per maand",
             },
             type="line",
-            group=dict(column="Date", dateFormat="auto"),
+            group=dict(column="Date", label="Month", dateFormat="month"),
             values=[
                 dict(
                     label="Comments",
@@ -566,13 +627,36 @@ def extract_comments_and_likes(zipfile):
                     addZeroes=True,
                 ),
             ],
-        )
+        ),
+        dict(
+            title={
+                "en": "Comments and likes per hour of the day",
+                "nl": "Comments en likes per uur van de dag",
+            },
+            type="bar",
+            group=dict(column="Date", label="Hour", dateFormat="hour_cycle"),
+            values=[
+                dict(
+                    label="Comments",
+                    column="Comments",
+                    aggregate="sum",
+                    addZeroes=True,
+                ),
+                dict(
+                    label="Likes",
+                    column="Likes",
+                    aggregate="sum",
+                    addZeroes=True,
+                ),
+            ],
+        ),
     ]
 
     return ExtractionResult(
         "instagram_comments_and_likes",
         props.Translatable({"en": "Comments and likes", "nl": "Comments en likes"}),
         df,
+        description,
         visualizations,
     )
 
@@ -597,14 +681,20 @@ def extract_viewed(zipfile):
         ),
     )
 
+    description = props.Translatable(
+        {
+            "en": "This table shows the number of videos and posts that you viewed over time. For anonymization purposes, the exact time of the post is not shown, but grouped by the hour.",
+        }
+    )
+
     visualizations = [
         dict(
             title={
-                "en": "This table shows the number of videos and posts that you viewed over time.",
-                "nl": "Deze tabel toont het aantal video's en berichten dat u in de loop van de tijd heeft bekeken.",
+                "en": "Number of videos and posts viewed over time",
+                "nl": "Aantal video's en posts bekeken in de loop van de tijd",
             },
             type="line",
-            group=dict(column="Date", dateFormat="auto"),
+            group=dict(column="Date", label="Date", dateFormat="auto"),
             values=[
                 dict(
                     label="Videos",
@@ -619,13 +709,36 @@ def extract_viewed(zipfile):
                     addZeroes=True,
                 ),
             ],
-        )
+        ),
+        dict(
+            title={
+                "en": "Videos and posts viewed per hour of the day",
+                "nl": "Video's en posts bekeken per uur van de dag",
+            },
+            type="bar",
+            group=dict(column="Date", label="Hour", dateFormat="hour_cycle"),
+            values=[
+                dict(
+                    label="Videos",
+                    column="Videos",
+                    aggregate="sum",
+                    addZeroes=True,
+                ),
+                dict(
+                    label="Posts",
+                    column="Posts",
+                    aggregate="sum",
+                    addZeroes=True,
+                ),
+            ],
+        ),
     ]
 
     return ExtractionResult(
         "instagram_viewed",
         props.Translatable({"en": "Viewed", "nl": "Viewed"}),
         df,
+        description,
         visualizations,
     )
 
@@ -648,13 +761,19 @@ def extract_session_info(zipfile):
     df = df.drop("End", axis=1)
     df = df.drop("Duration", axis=1)
 
+    description = props.Translatable(
+        {
+            "en": "This table shows the number of minutes you spent on Instagram over time.",
+        }
+    )
+
     visualizations = [
         dict(
             title={
                 "en": "Number of minutes spent on Instagram over time",
                 "nl": "Aantal minuten besteed aan Instagram in de loop van de tijd",
             },
-            type="line",
+            type="area",
             group=dict(column="Start", dateFormat="auto"),
             values=[
                 dict(
@@ -671,6 +790,7 @@ def extract_session_info(zipfile):
         "instagram_session_info",
         props.Translatable({"en": "Session information", "nl": "Sessie informatie"}),
         df,
+        description,
         visualizations,
     )
 
@@ -683,7 +803,7 @@ def extract_data(path):
         extract_viewed,
         extract_session_info,
         extract_direct_message_activity,
-        extract_comment_activity,
+        # extract_comment_activity,
         # extract_posts_liked,
     ]
 
@@ -698,7 +818,7 @@ def extract_data(path):
 
 
 ExtractionResult = namedtuple(
-    "ExtractionResult", ["id", "title", "data_frame", "visualizations"]
+    "ExtractionResult", ["id", "title", "data_frame", "description", "visualizations"]
 )
 
 
@@ -775,7 +895,7 @@ class DataDonationProcessor:
                 table.id,
                 table.title,
                 table.data_frame,
-                None,
+                table.description,
                 table.visualizations,
             )
             for table in data
@@ -784,10 +904,17 @@ class DataDonationProcessor:
         meta_table = props.PropsUIPromptConsentFormTable(
             "log_messages", log_title, meta_frame
         )
+        description = props.Translatable(
+            {
+                "en": """Determine whether you would like to donate the data below. Carefully check the data and adjust when required. With your donation you contribute to the previously described research. Thank you in advance.
+                    The tables below list the types of data that you can donate from your Instagram package. Please note that you are only donating information about the number of followers, likes, comments, posts, and messages you have sent or received. You will only donate anonymous data. So no information about the content of your posts, messages, or comments is included. You will also not share any information about who you interact with on Instagram (e.g., follow, like, comment on). If you DO NOT want to donate any of the information in the table below, you can select the row and delete it from your data donation in the table below.""",
+            }
+        )
+
         self.log(f"prompt consent")
         consent_result = yield render_donation_page(
             self.platform,
-            props.PropsUIPromptConsentForm(tables, [meta_table]),
+            props.PropsUIPromptConsentForm(tables, [meta_table], description),
             self.progress,
         )
 
@@ -826,7 +953,6 @@ def render_end_page():
 
 def render_donation_page(platform, body, progress):
     header = props.PropsUIHeader(props.Translatable({"en": platform, "nl": platform}))
-
     footer = props.PropsUIFooter(progress)
     page = props.PropsUIPageDonation(platform, header, body, footer)
     return CommandUIRender(page)
@@ -857,6 +983,7 @@ def prompt_consent(id, data, meta_data):
     meta_table = props.PropsUIPromptConsentFormTable(
         "log_messages", log_title, meta_frame
     )
+
     return props.PropsUIPromptConsentForm([table], [meta_table])
 
 

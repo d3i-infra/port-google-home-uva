@@ -141,6 +141,10 @@ export function tokenize (text: string): string[] {
 }
 
 export function getTableColumn (table: Table, column: string): string[] {
+  if (column === '.COUNT') {
+    // special case: just return array with values of 1
+    return Array(table.body.rows.length).fill('1')
+  }
   const columnIndex = table.head.cells.findIndex((cell) => cell === column)
   if (columnIndex < 0) throw new Error(`column ${table.id}.${column} not found`)
   return table.body.rows.map((row) => row.cells[columnIndex])

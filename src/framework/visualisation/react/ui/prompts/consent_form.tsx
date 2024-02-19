@@ -110,7 +110,8 @@ export const ConsentForm = (props: Props): JSX.Element => {
       annotations: [],
       originalBody: body,
       deletedRows: [],
-      visualizations: tableData.visualizations
+      visualizations: tableData.visualizations,
+      folded: tableData.folded || false
     }
   }
 
@@ -168,7 +169,9 @@ export const ConsentForm = (props: Props): JSX.Element => {
   return (
     <>
       <div className='max-w-3xl'>
-        <BodyLarge text={description} />
+        {description.split('\n').map((line, index) => (
+          <BodyLarge key={'description' + String(index)} text={line} />
+        ))}
       </div>
       <div className='flex flex-col gap-16 w-full'>
         <div className='grid gap-8 max-w-full'>
@@ -203,24 +206,22 @@ interface Copy {
   cancelButton: string
 }
 
-function prepareCopy ({ locale }: Props): Copy {
+function prepareCopy ({ donateQuestion, donateButton, description, locale }: Props): Copy {
   return {
-    description: Translator.translate(description, locale),
-    donateQuestion: Translator.translate(donateQuestionLabel, locale),
-    donateButton: Translator.translate(donateButtonLabel, locale),
+    description: Translator.translate(description ?? defaultDescription, locale),
+    donateQuestion: Translator.translate(donateQuestion ?? defaultDonateQuestionLabel, locale),
+    donateButton: Translator.translate(donateButton ?? defaultDonateButtonLabel, locale),
     cancelButton: Translator.translate(cancelButtonLabel, locale)
   }
 }
 
-const donateQuestionLabel = new TextBundle()
+const defaultDonateQuestionLabel = new TextBundle()
   .add('en', 'Do you want to donate the above data?')
   .add('nl', 'Wilt u de bovenstaande gegevens doneren?')
 
-const donateButtonLabel = new TextBundle().add('en', 'Yes, donate').add('nl', 'Ja, doneer')
+const defaultDonateButtonLabel = new TextBundle().add('en', 'Yes, donate').add('nl', 'Ja, doneer')
 
-const cancelButtonLabel = new TextBundle().add('en', 'No').add('nl', 'Nee')
-
-const description = new TextBundle()
+const defaultDescription = new TextBundle()
   .add(
     'en',
     'Determine whether you would like to donate the data below. Carefully check the data and adjust when required. With your donation you contribute to the previously described research. Thank you in advance.'
@@ -229,3 +230,5 @@ const description = new TextBundle()
     'nl',
     'Bepaal of u de onderstaande gegevens wilt doneren. Bekijk de gegevens zorgvuldig en pas zo nodig aan. Met uw donatie draagt u bij aan het eerder beschreven onderzoek. Alvast hartelijk dank.'
   )
+
+const cancelButtonLabel = new TextBundle().add('en', 'No').add('nl', 'Nee')

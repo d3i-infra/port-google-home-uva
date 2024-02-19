@@ -73,7 +73,7 @@ export type AggregationGroup = z.infer<typeof zAggregationGroup>
 
 export const zAggregationValue = z.object({
   label: zLabel.optional(),
-  column: z.string(),
+  column: z.string().optional().default('.COUNT'),
   aggregate: zAggregationFunction.optional(),
   group_by: z.string().optional(),
   z: z.string().optional(),
