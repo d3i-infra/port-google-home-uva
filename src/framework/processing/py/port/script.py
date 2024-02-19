@@ -343,6 +343,8 @@ def extract_comment_activity(zipfile):
     )
 
 
+# CURRENTLY NOT USED:
+# CAMBRIDGE ASKED TO REMOVE THE 'POSTS LIKED' (ON NOTION)
 def extract_posts_liked(zipfile):
     urls = []
     timestamps = []
@@ -354,11 +356,26 @@ def extract_posts_liked(zipfile):
     df = pd.DataFrame({"Liked": timestamps, "Link": urls})
     df["Liked"] = pd.to_datetime(df["Liked"]).dt.strftime("%Y-%m-%d %H:%M")
     df = df.sort_values("Liked")
-
     visualizations = [
         dict(
             title={
-                "en": "Posts like per hour of the day",
+                "en": "Posts liked per day of the week",
+                "nl": "Posts geliked per dag van de week",
+            },
+            type="bar",
+            group=dict(column="Liked", dateFormat="day_cycle"),
+            values=[
+                dict(
+                    label="likes",
+                    column="Link",
+                    aggregate="count",
+                    addZeroes=True,
+                )
+            ],
+        ),
+        dict(
+            title={
+                "en": "Posts liked per hour of the day",
                 "nl": "Posts geliked per uur van de dag",
             },
             type="bar",
@@ -371,9 +388,8 @@ def extract_posts_liked(zipfile):
                     addZeroes=True,
                 )
             ],
-        )
+        ),
     ]
-
     return ExtractionResult(
         "instagram_posts_liked",
         props.Translatable({"en": "Posts Liked", "nl": "Geliked"}),
@@ -584,8 +600,8 @@ def extract_viewed(zipfile):
     visualizations = [
         dict(
             title={
-                "en": "The number of videos and posts you viewed over time",
-                "nl": "Het aantal video's en berichten dat u in de loop van de tijd heeft bekeken",
+                "en": "This table shows the number of videos and posts that you viewed over time.",
+                "nl": "Deze tabel toont het aantal video's en berichten dat u in de loop van de tijd heeft bekeken.",
             },
             type="line",
             group=dict(column="Date", dateFormat="auto"),
@@ -668,7 +684,7 @@ def extract_data(path):
         extract_session_info,
         extract_direct_message_activity,
         extract_comment_activity,
-        extract_posts_liked,
+        # extract_posts_liked,
     ]
 
     zfile = zipfile.ZipFile(path)
