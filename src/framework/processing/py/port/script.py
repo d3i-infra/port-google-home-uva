@@ -371,14 +371,12 @@ def extract_comment_activity(zipfile):
 # CURRENTLY NOT USED:
 # CAMBRIDGE ASKED TO REMOVE THE 'POSTS LIKED' (ON NOTION)
 def extract_posts_liked(zipfile):
-    urls = []
     timestamps = []
     for data in glob_json(zipfile, "likes/liked_posts.json"):
         for item in data["likes_media_likes"]:
             info = item["string_list_data"][0]
             timestamps.append(parse_datetime(info["timestamp"]))
-            urls.append(info["href"])
-    df = pd.DataFrame({"Liked": timestamps, "Link": urls})
+    df = pd.DataFrame({"Liked": timestamps})
     df["Liked"] = pd.to_datetime(df["Liked"]).dt.strftime("%Y-%m-%d %H:%M")
     df = df.sort_values("Liked")
     visualizations = [
@@ -392,7 +390,7 @@ def extract_posts_liked(zipfile):
             values=[
                 dict(
                     label="likes",
-                    column="Link",
+                    column="Liked",
                     aggregate="count",
                     addZeroes=True,
                 )
@@ -408,7 +406,7 @@ def extract_posts_liked(zipfile):
             values=[
                 dict(
                     label="likes",
-                    column="Link",
+                    column="Liked",
                     aggregate="count",
                     addZeroes=True,
                 )
