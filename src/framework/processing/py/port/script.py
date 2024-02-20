@@ -694,15 +694,8 @@ tik_tok_data_donation = DataDonation(
 
 
 def process(session_id):
-    progress = 0
     yield donate(f"{session_id}-tracking", '[{ "message": "user entered script" }]')
     yield from tik_tok_data_donation(session_id)
-    yield render_end_page()
-
-
-def render_end_page():
-    page = props.PropsUIPageEnd()
-    return CommandUIRender(page)
 
 
 def render_donation_page(platform, body, progress):
