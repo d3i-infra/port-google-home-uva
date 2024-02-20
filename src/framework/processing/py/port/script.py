@@ -528,10 +528,9 @@ def extract_videos_liked(data):
     favorite_videos = get_in(data, "Activity", "Favorite Videos", "FavoriteVideoList")
     if favorite_videos is None:
         return
-    table = {"Liked": [], "Link": []}
+    table = {"Liked": []}
     for item in favorite_videos:
         table["Liked"].append(parse_datetime(item["Date"]).strftime("%Y-%m-%d %H:%M"))
-        table["Link"].append(item["Link"])
 
     return ExtractionResult(
         "tiktok_videos_liked",
