@@ -528,10 +528,9 @@ def extract_videos_liked(data):
     favorite_videos = get_in(data, "Activity", "Favorite Videos", "FavoriteVideoList")
     if favorite_videos is None:
         return
-    table = {"Liked": [], "Link": []}
+    table = {"Liked": []}
     for item in favorite_videos:
         table["Liked"].append(parse_datetime(item["Date"]).strftime("%Y-%m-%d %H:%M"))
-        table["Link"].append(item["Link"])
 
     return ExtractionResult(
         "tiktok_videos_liked",
@@ -695,15 +694,8 @@ tik_tok_data_donation = DataDonation(
 
 
 def process(session_id):
-    progress = 0
     yield donate(f"{session_id}-tracking", '[{ "message": "user entered script" }]')
     yield from tik_tok_data_donation(session_id)
-    yield render_end_page()
-
-
-def render_end_page():
-    page = props.PropsUIPageEnd()
-    return CommandUIRender(page)
 
 
 def render_donation_page(platform, body, progress):
