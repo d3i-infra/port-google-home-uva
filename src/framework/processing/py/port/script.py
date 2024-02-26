@@ -681,7 +681,7 @@ def extract_viewed(zipfile):
 
     description = props.Translatable(
         {
-            "en": "This table shows the number of videos and posts that you viewed over time. For anonymization purposes, the exact time of the post is not shown, but grouped by the hour.",
+            "en": "This table shows the number of videos and posts that you viewed over time.",
         }
     )
 
@@ -904,8 +904,8 @@ class DataDonationProcessor:
         )
         description = props.Translatable(
             {
-                "en": """Determine whether you would like to donate the data below. Carefully check the data and adjust when required. With your donation you contribute to the previously described research. Thank you in advance.
-                    The tables below list the types of data that you can donate from your Instagram package. Please note that you are only donating information about the number of followers, likes, comments, posts, and messages you have sent or received. You will only donate anonymous data. So no information about the content of your posts, messages, or comments is included. You will also not share any information about who you interact with on Instagram (e.g., follow, like, comment on). If you DO NOT want to donate any of the information in the table below, you can select the row and delete it from your data donation in the table below.""",
+                "en": """Decide whether you would like to donate the data below. Carefully check the data and adjust as required. Your donation will contibute to the reasearch project that was explained at the start of the project. Thank you in advance.
+                    If you DO NOT want to donate any of the information in the table below, you can select the row and delete it from your data donation in the table below""",
             }
         )
 
