@@ -1,8 +1,12 @@
-# Feldspar
+# Port Google Home
+
+This repository contains extraction scripts for Google Home data. This data donation study is executed by the UvA.
+
+## Feldspar
 
 Integration mechanism for developers to build an extension that can be hosted on the Next platform. An example of this is Port, a software service program that enables individuals to donate their digital trace data. See documentation below.
 
-# Port: A frontend for data donation
+## Port: A frontend for data donation
 
 Port is a research tool that enables individuals to donate their digital trace data for academic research in a secure, transparent, and privacy-preserving way.
 
