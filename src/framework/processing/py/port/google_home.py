@@ -207,16 +207,21 @@ def google_home_html_to_df(html_buf):
 
             date = ""
             command = ""
-            response = "Geen reactie"
+            response = ""
             card_node = n.xpath("node()")
 
             for i, element in enumerate(card_node):
+                if i == 0:
+                    command = helpers.fix_latin1_string(element)
                 if hasattr(element, 'tag'):
                     if element.tag == "a":
                         command = helpers.fix_latin1_string(element.text)
 
                     if element.tag == "br" and i < len(card_node) - 2:
-                        response = helpers.fix_latin1_string(card_node[i + 1])
+                        response = response + " " + helpers.fix_latin1_string(card_node[i + 1])
+
+            if response == "":
+                response = "Geen reactie"
 
             date = card_node.pop()
             datapoints.append(
