@@ -154,7 +154,7 @@ def extract_google_home(zipfile: str, validation: validate.ValidateInput) -> lis
     if not df.empty:
 
         wordcloud = {
-            "title": {"en": "Wordcloud", "nl": "Woordwolk"},
+            "title": {"en": "", "nl": ""},
             "type": "wordcloud",
             "textColumn": "Uw commando"
         }
@@ -179,7 +179,7 @@ def render_end_page():
 
 
 def render_donation_page(platform, body, progress):
-    header = props.PropsUIHeader(props.Translatable({"en": platform, "nl": platform}))
+    header = props.PropsUIHeader(props.Translatable({"en": "Uw Google Home gegevens delen", "nl": "Uw Google Home gegevens delen"}))
 
     footer = props.PropsUIFooter(progress)
     page = props.PropsUIPageDonation(platform, header, body, footer)

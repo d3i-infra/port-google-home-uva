@@ -205,25 +205,36 @@ def google_home_html_to_df(html_buf):
 
         for n in r:
 
-            date = ""
-            command = ""
-            response = ""
-            card_node = n.xpath("node()")
+            try:
+                date = ""
+                command = ""
+                response = ""
+                card_node = n.xpath("node()")
 
-            for i, element in enumerate(card_node):
-                if i == 0:
-                    command = helpers.fix_latin1_string(element)
-                if hasattr(element, 'tag'):
-                    if element.tag == "a":
-                        command = helpers.fix_latin1_string(element.text)
+                for i, element in enumerate(card_node):
+                    if i == 0:
+                        command = helpers.fix_latin1_string(element)
+                    if hasattr(element, 'tag'):
+                        if element.tag == "a":
+                            command = helpers.fix_latin1_string(element.text)
 
-                    if element.tag == "br" and i < len(card_node) - 2:
-                        response = response + " " + helpers.fix_latin1_string(card_node[i + 1])
+                        if element.tag == "br" and i < len(card_node) - 2:
+                            to_parse = card_node[i + 1]
+                            if isinstance(to_parse, etree._Element):
+                                text = to_parse.text
+                                response = response + " " + helpers.fix_latin1_string(text)
+                            elif isinstance(to_parse, str):
+                                response = response + " " + helpers.fix_latin1_string(to_parse)
+                            else:
+                                pass
 
-            if response == "":
-                response = "Geen reactie"
+                if response == "":
+                    response = "Geen reactie"
 
-            date = card_node.pop()
+                date = card_node.pop()
+            except Exception as e:
+                logger.error(e)
+
             datapoints.append(
                 (date, command, response)
             )
