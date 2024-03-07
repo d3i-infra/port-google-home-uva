@@ -51,12 +51,9 @@ class PropsUIFooter:
         progressPercentage: float indicating the progress in the flow
     """
 
-    progressPercentage: float
-
     def toDict(self):
         dict = {}
         dict["__type__"] = "PropsUIFooter"
-        dict["progressPercentage"] = self.progressPercentage
         return dict
 
 
