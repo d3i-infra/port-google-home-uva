@@ -13,7 +13,7 @@ from port.api.commands import (CommandSystemDonate, CommandUIRender, CommandSyst
 LOG_STREAM = io.StringIO()
 
 logging.basicConfig(
-    #stream=LOG_STREAM,
+    stream=LOG_STREAM,
     level=logging.DEBUG,
     format="%(asctime)s --- %(name)s --- %(levelname)s --- %(message)s",
     datefmt="%Y-%m-%dT%H:%M:%S%z",
@@ -30,7 +30,6 @@ def process(session_id):
         ("Google Home", extract_google_home, google_home.validate),
     ]
 
-
     # For each platform
     # 1. Prompt file extraction loop
     # 2. In case of succes render data on screen
@@ -45,7 +44,7 @@ def process(session_id):
             yield donate_logs(f"{session_id}-tracking")
 
             # Render the propmt file page
-            promptFile = prompt_file("application/zip, text/plain, application/json", platform_name)
+            promptFile = prompt_file("application/zip, text/plain, application/json")
             file_result = yield render_donation_page(platform_name, promptFile)
 
             if file_result.__type__ == "PayloadString":
@@ -159,8 +158,8 @@ def extract_google_home(zipfile: str, validation: validate.ValidateInput) -> lis
         }
         table_title = props.Translatable({"en": "Your Google Assistant Data", "nl": "Uw Google Assistant Data"})
         table_description = props.Translatable({
-            "en": "In de table ziet u uw data, in het figuur hieronder ziet u een wordcloud. Hier kun je een heel verhaaltje typen. Druk op het vergrootglas om een grotere woordwolk te krijgen", 
-            "nl": "In de table ziet u uw data, in het figuur hieronder ziet u een wordcloud. Druk op het vergrootglas om een grotere woordwolk te krijgen", 
+            "en": "CHANGE THIS In de table ziet u uw data, in het figuur hieronder ziet u een wordcloud. Hier kun je een heel verhaaltje typen. Druk op het vergrootglas om een grotere woordwolk te krijgen", 
+            "nl": "CHANGE THIS In de table ziet u uw data, in het figuur hieronder ziet u een wordcloud. Druk op het vergrootglas om een grotere woordwolk te krijgen", 
         })
         table =  props.PropsUIPromptConsentFormTable("google_home_unique_key_here", table_title, df, table_description, [wordcloud])
         tables_to_render.append(table)
@@ -200,11 +199,11 @@ def retry_confirmation(platform):
     return props.PropsUIPromptConfirm(text, ok, cancel)
 
 
-def prompt_file(extensions, platform):
+def prompt_file(extensions):
     description = props.Translatable(
         {
-            "en": f"Please follow the download instructions and choose the file that you stored on your device. Click “Skip” at the right bottom, if you do not have a file from {platform}.",
-            "nl": f"Volg de download instructies en kies het bestand dat u opgeslagen heeft op uw apparaat. Als u geen {platform} bestand heeft klik dan op “Overslaan” rechts onder."
+            "en": f"Please follow the download instructions and choose the file that you stored on your device.",
+            "nl": f"Volg de download instructies en kies het bestand dat u opgeslagen heeft op uw apparaat. "
         }
     )
     return props.PropsUIPromptFileInput(description, extensions)
@@ -213,6 +212,7 @@ def prompt_file(extensions, platform):
 def donate(key, json_string):
     return CommandSystemDonate(key, json_string)
 
+
 def exit(code, info):
     return CommandSystemExit(code, info)
 
@@ -220,7 +220,6 @@ def exit(code, info):
 
 ###############################################################################################
 # Questionnaire questions
-
 
 def render_questionnaire():
     platform_name = "Google Home"
@@ -265,7 +264,6 @@ def render_questionnaire():
         "en": "Do you have any additional comments about the donation? Please add them here.",
         "nl": "Heeft u nog andere opmerkingen? Laat die hier achter."
     })
-
 
     questions = [
         props.PropsUIQuestionOpen(question=understanding, id=1),
