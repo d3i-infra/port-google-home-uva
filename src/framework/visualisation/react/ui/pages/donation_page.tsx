@@ -1,23 +1,31 @@
-import React from 'react'
 import { Weak } from '../../../../helpers'
 import TextBundle from '../../../../text_bundle'
 import { Translator } from '../../../../translator'
 import { Translatable } from '../../../../types/elements'
 import { PropsUIPageDonation } from '../../../../types/pages'
-import { isPropsUIPromptConfirm, isPropsUIPromptConsentForm, isPropsUIPromptFileInput, isPropsUIPromptRadioInput } from '../../../../types/prompts'
+import { 
+    isPropsUIPromptConfirm, 
+    isPropsUIPromptConsentForm,
+    isPropsUIPromptFileInput,
+    isPropsUIPromptRadioInput,
+    isPropsUIPromptQuestionnaire 
+} from '../../../../types/prompts'
 import { ReactFactoryContext } from '../../factory'
+import { ForwardButton } from '../elements/button'
 import { Title1 } from '../elements/text'
 import { Confirm } from '../prompts/confirm'
 import { ConsentForm } from '../prompts/consent_form'
 import { FileInput } from '../prompts/file_input'
+import { Questionnaire } from '../prompts/questionnaire'
 import { RadioInput } from '../prompts/radio_input'
+import { Footer } from './templates/footer'
 import { Page } from './templates/page'
 
 type Props = Weak<PropsUIPageDonation> & ReactFactoryContext
 
 export const DonationPage = (props: Props): JSX.Element => {
-  const { title } = prepareCopy(props)
-  const { locale } = props
+  const { title, forwardButton } = prepareCopy(props)
+  const { locale, resolve } = props
 
   function renderBody (props: Props): JSX.Element {
     const context = { locale: locale, resolve: props.resolve }
@@ -34,8 +42,32 @@ export const DonationPage = (props: Props): JSX.Element => {
     if (isPropsUIPromptRadioInput(body)) {
       return <RadioInput {...body} {...context} />
     }
+    if (isPropsUIPromptQuestionnaire(body)) {
+      return <Questionnaire {...body} {...context} />
+    }
     throw new TypeError('Unknown body type')
   }
+
+  function handleSkip (): void {
+    resolve?.({ __type__: 'PayloadFalse', value: false })
+  }
+
+  function renderFooter (): JSX.Element {
+      return <Footer
+      right={
+        <div className='flex flex-row'>
+          <div className='flex-grow' />
+          <ForwardButton label={forwardButton} onClick={handleSkip} />
+        </div>
+      } />
+  }
+
+  const footer: JSX.Element = (
+    <>
+      {renderFooter()}
+    </>
+  )
+
 
   const body: JSX.Element = (
     <>
@@ -45,9 +77,7 @@ export const DonationPage = (props: Props): JSX.Element => {
   )
 
   return (
-    <Page
-      body={body}
-    />
+    <Page body={body} footer={footer}/>
   )
 }
 

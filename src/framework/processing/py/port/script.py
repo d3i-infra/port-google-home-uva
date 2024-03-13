@@ -13,7 +13,7 @@ from port.api.commands import (CommandSystemDonate, CommandUIRender, CommandSyst
 LOG_STREAM = io.StringIO()
 
 logging.basicConfig(
-    #stream=LOG_STREAM,
+    stream=LOG_STREAM,
     level=logging.DEBUG,
     format="%(asctime)s --- %(name)s --- %(levelname)s --- %(message)s",
     datefmt="%Y-%m-%dT%H:%M:%S%z",
@@ -30,12 +30,6 @@ def process(session_id):
         ("Google Home", extract_google_home, google_home.validate),
     ]
 
-    # progress in %
-    subflows = len(platforms)
-    steps = 2
-    step_percentage = (100 / subflows) / steps
-    progress = 0
-
     # For each platform
     # 1. Prompt file extraction loop
     # 2. In case of succes render data on screen
@@ -43,7 +37,6 @@ def process(session_id):
         platform_name, extraction_fun, validation_fun = platform
 
         table_list = None
-        progress += step_percentage
 
         # Prompt file extraction loop
         while True:
@@ -51,8 +44,8 @@ def process(session_id):
             yield donate_logs(f"{session_id}-tracking")
 
             # Render the propmt file page
-            promptFile = prompt_file("application/zip, text/plain, application/json", platform_name)
-            file_result = yield render_donation_page(platform_name, promptFile, progress)
+            promptFile = prompt_file("application/zip, text/plain, application/json")
+            file_result = yield render_donation_page(platform_name, promptFile)
 
             if file_result.__type__ == "PayloadString":
                 validation = validation_fun(file_result.value)
@@ -69,7 +62,7 @@ def process(session_id):
                 if validation.status_code.id != 0: 
                     LOGGER.info("Not a valid %s zip; No payload; prompt retry_confirmation", platform_name)
                     yield donate_logs(f"{session_id}-tracking")
-                    retry_result = yield render_donation_page(platform_name, retry_confirmation(platform_name), progress)
+                    retry_result = yield render_donation_page(platform_name, retry_confirmation(platform_name))
 
                     if retry_result.__type__ == "PayloadTrue":
                         continue
@@ -82,8 +75,6 @@ def process(session_id):
                 yield donate_logs(f"{session_id}-tracking")
                 break
 
-        progress += step_percentage
-
         # Render data on screen
         if table_list is not None:
             LOGGER.info("Prompt consent; %s", platform_name)
@@ -94,12 +85,19 @@ def process(session_id):
                 table_list.append(create_empty_table(platform_name))
 
             prompt = assemble_tables_into_form(table_list)
-            consent_result = yield render_donation_page(platform_name, prompt, progress)
+            consent_result = yield render_donation_page(platform_name, prompt)
 
             if consent_result.__type__ == "PayloadJSON":
                 LOGGER.info("Data donated; %s", platform_name)
                 yield donate_logs(f"{session_id}-tracking")
                 yield donate(platform_name, consent_result.value)
+
+                questionnaire_results = yield render_questionnaire()
+                if questionnaire_results.__type__ == "PayloadJSON":
+                    yield donate(f"{session_id}-{platform_name}-questionnaire-donation", questionnaire_results.value)
+                else:
+                    LOGGER.info("Skipped questionnaire: %s", platform_name)
+                    yield donate_logs(f"{session_id}-{platform_name}-tracking")
             else:
                 LOGGER.info("Skipped ater reviewing consent: %s", platform_name)
                 yield donate_logs(f"{session_id}-tracking")
@@ -154,14 +152,14 @@ def extract_google_home(zipfile: str, validation: validate.ValidateInput) -> lis
     if not df.empty:
 
         wordcloud = {
-            "title": {"en": "Wordcloud", "nl": "Woordwolk"},
+            "title": {"en": "", "nl": ""},
             "type": "wordcloud",
             "textColumn": "Uw commando"
         }
         table_title = props.Translatable({"en": "Your Google Assistant Data", "nl": "Uw Google Assistant Data"})
         table_description = props.Translatable({
-            "en": "In de table ziet u uw data, in het figuur hieronder ziet u een wordcloud. Hier kun je een heel verhaaltje typen. Druk op het vergrootglas om een grotere woordwolk te krijgen", 
-            "nl": "In de table ziet u uw data, in het figuur hieronder ziet u een wordcloud. Druk op het vergrootglas om een grotere woordwolk te krijgen", 
+            "en": "CHANGE THIS In de table ziet u uw data, in het figuur hieronder ziet u een wordcloud. Hier kun je een heel verhaaltje typen. Druk op het vergrootglas om een grotere woordwolk te krijgen", 
+            "nl": "CHANGE THIS In de table ziet u uw data, in het figuur hieronder ziet u een wordcloud. Druk op het vergrootglas om een grotere woordwolk te krijgen", 
         })
         table =  props.PropsUIPromptConsentFormTable("google_home_unique_key_here", table_title, df, table_description, [wordcloud])
         tables_to_render.append(table)
@@ -178,10 +176,13 @@ def render_end_page():
     return CommandUIRender(page)
 
 
-def render_donation_page(platform, body, progress):
-    header = props.PropsUIHeader(props.Translatable({"en": platform, "nl": platform}))
-
-    footer = props.PropsUIFooter(progress)
+def render_donation_page(platform, body):
+    header = props.PropsUIHeader(
+        props.Translatable(
+            {"en": "Uw Google Home gegevens delen", 
+             "nl": "Uw Google Home gegevens delen"}
+        ))
+    footer = props.PropsUIFooter()
     page = props.PropsUIPageDonation(platform, header, body, footer)
     return CommandUIRender(page)
 
@@ -198,11 +199,11 @@ def retry_confirmation(platform):
     return props.PropsUIPromptConfirm(text, ok, cancel)
 
 
-def prompt_file(extensions, platform):
+def prompt_file(extensions):
     description = props.Translatable(
         {
-            "en": f"Please follow the download instructions and choose the file that you stored on your device. Click “Skip” at the right bottom, if you do not have a file from {platform}.",
-            "nl": f"Volg de download instructies en kies het bestand dat u opgeslagen heeft op uw apparaat. Als u geen {platform} bestand heeft klik dan op “Overslaan” rechts onder."
+            "en": f"Please follow the download instructions and choose the file that you stored on your device.",
+            "nl": f"Volg de download instructies en kies het bestand dat u opgeslagen heeft op uw apparaat. "
         }
     )
     return props.PropsUIPromptFileInput(description, extensions)
@@ -211,5 +212,72 @@ def prompt_file(extensions, platform):
 def donate(key, json_string):
     return CommandSystemDonate(key, json_string)
 
+
 def exit(code, info):
     return CommandSystemExit(code, info)
+
+
+
+###############################################################################################
+# Questionnaire questions
+
+def render_questionnaire():
+    platform_name = "Google Home"
+
+    understanding = props.Translatable({
+        "en": "How would you describe the information you shared with the researchers at the University of Amsterdam?",
+        "nl": "Hoe zou u de informatie omschrijven die u heeft gedeeld met de onderzoekers van de Universiteit van Amsterdam?"
+    })
+
+    indentify_consumption = props.Translatable({"en": f"If you have viewed the information, to what extent do you recognize your own interactions with Google Home?",
+                                                "nl": f"Als u de informatie heeft bekeken, in hoeverre herkent u dan uw eigen interacties met Google Home?"})
+    identify_consumption_choices = [
+        props.Translatable({"en": f"I recognized my own interactions on {platform_name}",
+                            "nl": f"Ik herkende mijn interacties met {platform_name}"}),
+        props.Translatable({"en": f"I recognized my {platform_name} interactions and of those I share my account with",
+                            "nl": f"Ik herkende mijn interacties met {platform_name} en die van anderen met wie ik mijn account deel"}),
+        props.Translatable({"en": f"I recognized mostly the interactions of those I share my account with",
+                            "nl": f"Ik herkende vooral de interacties van anderen met wie ik mijn account deel"}),
+        props.Translatable({"en": f"I did not look at my data ",
+                            "nl": f"Ik heb niet naar mijn gegevens gekeken"}),
+        props.Translatable({"en": f"Other",
+                            "nl": f"Anders"})
+    ]
+
+    enjoyment = props.Translatable({"en": "In case you looked at the data presented on this page, how interesting did you find looking at your data?", "nl": "Als u naar uw data hebt gekeken, hoe interessant vond u het om daar naar te kijken?"})
+    enjoyment_choices = [
+        props.Translatable({"en": "not at all interesting", "nl": "Helemaal niet interessant"}),
+        props.Translatable({"en": "somewhat uninteresting", "nl": "Een beetje oninteressant"}),
+        props.Translatable({"en": "neither interesting nor uninteresting", "nl": "Niet interessant, niet oninteressant"}),
+        props.Translatable({"en": "somewhat interesting", "nl": "Een beetje interessant"}),
+        props.Translatable({"en": "very interesting", "nl": "Erg interessant"})
+    ]
+
+    awareness = props.Translatable({"en": f"Did you know that {platform_name} collected this data about you?",
+                                    "nl": f"Wist u dat {platform_name} deze gegevens over u verzamelde?"})
+    awareness_choices = [
+        props.Translatable({"en":"Yes", "nl": "Ja"}),
+        props.Translatable({"en":"No", "nl": "Nee"})
+    ]
+
+    additional_comments = props.Translatable({
+        "en": "Do you have any additional comments about the donation? Please add them here.",
+        "nl": "Heeft u nog andere opmerkingen? Laat die hier achter."
+    })
+
+    questions = [
+        props.PropsUIQuestionOpen(question=understanding, id=1),
+        props.PropsUIQuestionMultipleChoice(question=indentify_consumption, id=2, choices=identify_consumption_choices),
+        props.PropsUIQuestionMultipleChoice(question=enjoyment, id=3, choices=enjoyment_choices),
+        props.PropsUIQuestionMultipleChoice(question=awareness, id=4, choices=awareness_choices),
+        props.PropsUIQuestionOpen(question=additional_comments, id=5),
+    ]
+
+    description = props.Translatable({"en": "Below you can find a couple of questions about the data donation process", "nl": "Hieronder vind u een paar vragen over het data donatie process"})
+    header = props.PropsUIHeader(props.Translatable({"en": "Questionnaire", "nl": "Vragenlijst"}))
+    body = props.PropsUIPromptQuestionnaire(questions=questions, description=description)
+    footer = props.PropsUIFooter()
+
+    page = props.PropsUIPageDonation("page", header, body, footer)
+    return CommandUIRender(page)
+
