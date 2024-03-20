@@ -234,7 +234,7 @@ def exit(code, info):
 #Not donate questions
 NO_DONATION_REASONS = props.Translatable({
     "en": "What is/are the reason(s) that you decided not to share your data?",
-    "nl": "Wat is de reden dat u er voor gekozen hebt uw data niet te delete?"
+    "nl": "Wat is de reden dat u er voor gekozen hebt uw data niet te delen?"
 })
 
 
