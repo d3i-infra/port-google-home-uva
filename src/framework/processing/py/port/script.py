@@ -98,9 +98,19 @@ def process(session_id):
                 else:
                     LOGGER.info("Skipped questionnaire: %s", platform_name)
                     yield donate_logs(f"{session_id}-{platform_name}-tracking")
+
+            # Data was not donated
             else:
                 LOGGER.info("Skipped ater reviewing consent: %s", platform_name)
                 yield donate_logs(f"{session_id}-tracking")
+
+                # render sad questionnaire
+                render_questionnaire_results = yield render_questionnaire_no_donation()
+                if render_questionnaire_results.__type__ == "PayloadJSON":
+                    yield donate(f"{session_id}--{platform_name}-questionnaire-no-donation", render_questionnaire_results.value)
+                else:
+                    LOGGER.info("Skipped questionnaire no donation: %s", platform_name)
+                    yield donate_logs(f"{session_id}-tracking")
 
     yield render_end_page()
     yield exit(0, "Success")
@@ -221,6 +231,13 @@ def exit(code, info):
 ###############################################################################################
 # Questionnaire questions
 
+#Not donate questions
+NO_DONATION_REASONS = props.Translatable({
+    "en": "What is/are the reason(s) that you decided not to share your data?",
+    "nl": "Wat is de reden dat u er voor gekozen hebt uw data niet te delete?"
+})
+
+
 def render_questionnaire():
     platform_name = "Google Home"
 
@@ -270,6 +287,70 @@ def render_questionnaire():
         props.PropsUIQuestionMultipleChoice(question=indentify_consumption, id=2, choices=identify_consumption_choices),
         props.PropsUIQuestionMultipleChoice(question=enjoyment, id=3, choices=enjoyment_choices),
         props.PropsUIQuestionMultipleChoice(question=awareness, id=4, choices=awareness_choices),
+        props.PropsUIQuestionOpen(question=additional_comments, id=5),
+    ]
+
+    description = props.Translatable({"en": "Below you can find a couple of questions about the data donation process", "nl": "Hieronder vind u een paar vragen over het data donatie process"})
+    header = props.PropsUIHeader(props.Translatable({"en": "Questionnaire", "nl": "Vragenlijst"}))
+    body = props.PropsUIPromptQuestionnaire(questions=questions, description=description)
+    footer = props.PropsUIFooter()
+
+    page = props.PropsUIPageDonation("page", header, body, footer)
+    return CommandUIRender(page)
+
+
+
+
+def render_questionnaire_no_donation():
+    platform_name = "Google Home"
+
+    understanding = props.Translatable({
+        "en": "How would you describe the information you shared with the researchers at the University of Amsterdam?",
+        "nl": "Hoe zou u de informatie omschrijven die u heeft gedeeld met de onderzoekers van de Universiteit van Amsterdam?"
+    })
+
+    indentify_consumption = props.Translatable({"en": f"If you have viewed the information, to what extent do you recognize your own interactions with Google Home?",
+                                                "nl": f"Als u de informatie heeft bekeken, in hoeverre herkent u dan uw eigen interacties met Google Home?"})
+    identify_consumption_choices = [
+        props.Translatable({"en": f"I recognized my own interactions on {platform_name}",
+                            "nl": f"Ik herkende mijn interacties met {platform_name}"}),
+        props.Translatable({"en": f"I recognized my {platform_name} interactions and of those I share my account with",
+                            "nl": f"Ik herkende mijn interacties met {platform_name} en die van anderen met wie ik mijn account deel"}),
+        props.Translatable({"en": f"I recognized mostly the interactions of those I share my account with",
+                            "nl": f"Ik herkende vooral de interacties van anderen met wie ik mijn account deel"}),
+        props.Translatable({"en": f"I did not look at my data ",
+                            "nl": f"Ik heb niet naar mijn gegevens gekeken"}),
+        props.Translatable({"en": f"Other",
+                            "nl": f"Anders"})
+    ]
+
+    enjoyment = props.Translatable({"en": "In case you looked at the data presented on this page, how interesting did you find looking at your data?", "nl": "Als u naar uw data hebt gekeken, hoe interessant vond u het om daar naar te kijken?"})
+    enjoyment_choices = [
+        props.Translatable({"en": "not at all interesting", "nl": "Helemaal niet interessant"}),
+        props.Translatable({"en": "somewhat uninteresting", "nl": "Een beetje oninteressant"}),
+        props.Translatable({"en": "neither interesting nor uninteresting", "nl": "Niet interessant, niet oninteressant"}),
+        props.Translatable({"en": "somewhat interesting", "nl": "Een beetje interessant"}),
+        props.Translatable({"en": "very interesting", "nl": "Erg interessant"})
+    ]
+
+    awareness = props.Translatable({"en": f"Did you know that {platform_name} collected this data about you?",
+                                    "nl": f"Wist u dat {platform_name} deze gegevens over u verzamelde?"})
+    awareness_choices = [
+        props.Translatable({"en":"Yes", "nl": "Ja"}),
+        props.Translatable({"en":"No", "nl": "Nee"})
+    ]
+
+    additional_comments = props.Translatable({
+        "en": "Do you have any additional comments about the donation? Please add them here.",
+        "nl": "Heeft u nog andere opmerkingen? Laat die hier achter."
+    })
+
+    questions = [
+        props.PropsUIQuestionOpen(question=understanding, id=1),
+        props.PropsUIQuestionMultipleChoice(question=indentify_consumption, id=2, choices=identify_consumption_choices),
+        props.PropsUIQuestionMultipleChoice(question=enjoyment, id=3, choices=enjoyment_choices),
+        props.PropsUIQuestionMultipleChoice(question=awareness, id=4, choices=awareness_choices),
+        props.PropsUIQuestionOpen(question=NO_DONATION_REASONS, id=6),
         props.PropsUIQuestionOpen(question=additional_comments, id=5),
     ]
 
