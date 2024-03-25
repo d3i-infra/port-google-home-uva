@@ -141,7 +141,7 @@ def create_empty_table(platform_name: str) -> props.PropsUIPromptConsentFormTabl
     Show something in case no data was extracted
     """
     title = props.Translatable({
-       "en": "Er ging niks mis, maar we konden niks vinden",
+       "en": "Nothing went wrong, but we could not find anything",
        "nl": "Er ging niks mis, maar we konden niks vinden"
     })
     df = pd.DataFrame(["No data found"], columns=["No data found"])
@@ -166,10 +166,10 @@ def extract_google_home(zipfile: str, validation: validate.ValidateInput) -> lis
             "type": "wordcloud",
             "textColumn": "Uw commando"
         }
-        table_title = props.Translatable({"en": "Your Google Assistant Data", "nl": "Uw Google Assistant Data"})
+        table_title = props.Translatable({"en": "Your Google Assistant Data", "nl": "Uw Google Assistant gegevens"})
         table_description = props.Translatable({
-            "en": "CHANGE THIS In de table ziet u uw data, in het figuur hieronder ziet u een wordcloud. Hier kun je een heel verhaaltje typen. Druk op het vergrootglas om een grotere woordwolk te krijgen", 
-            "nl": "CHANGE THIS In de table ziet u uw data, in het figuur hieronder ziet u een wordcloud. Druk op het vergrootglas om een grotere woordwolk te krijgen", 
+            "en": "Here below you see your Google Assistant data. You can see at what day and time what command was understood by the assistant and what the device might have said or done in response. You have the option to select specific rows in the table and remove them if you do not want to share them with us. Below the table you see a word cloud of the most frequent words in your commands. The bigger the word the more often it was used. You can click on the magnifying glass to make the word cloud bigger.", 
+            "nl": "Hieronder ziet u uw Google Home gegevens. U kunt zien op welke dag en tijd welk commando werd begrepen door de assistent en wat het apparaat mogelijk heeft gezegd of gedaan als reactie. U hebt de optie om specifieke rijen in de tabel te selecteren en te verwijderen als u ze niet met ons wilt delen. Onder de tabel ziet u een woordwolk van de meest voorkomende woorden in uw commando's. Hoe grooter het woord, hoe vaaker het werd gebruikt. U kunt op het vergrootglas klikken om de woordenwolk groter te maken.", 
         })
         table =  props.PropsUIPromptConsentFormTable("google_home_unique_key_here", table_title, df, table_description, [wordcloud])
         tables_to_render.append(table)
@@ -189,7 +189,7 @@ def render_end_page():
 def render_donation_page(platform, body):
     header = props.PropsUIHeader(
         props.Translatable(
-            {"en": "Uw Google Home gegevens delen", 
+            {"en": "Sharing your Google Home data", 
              "nl": "Uw Google Home gegevens delen"}
         ))
     footer = props.PropsUIFooter()
@@ -241,15 +241,15 @@ NO_DONATION_REASONS = props.Translatable({
 def render_questionnaire():
     platform_name = "Google Home"
 
-    understanding = props.Translatable({
-        "en": "How would you describe the information you shared with the researchers at the University of Amsterdam?",
-        "nl": "Hoe zou u de informatie omschrijven die u heeft gedeeld met de onderzoekers van de Universiteit van Amsterdam?"
-    })
+    #understanding = props.Translatable({
+    #    "en": "How would you describe the information you shared with the researchers at the University of Amsterdam?",
+    #    "nl": "Hoe zou u de informatie omschrijven die u heeft gedeeld met de onderzoekers van de Universiteit van Amsterdam?"
+    #})
 
     indentify_consumption = props.Translatable({"en": f"If you have viewed the information, to what extent do you recognize your own interactions with Google Home?",
                                                 "nl": f"Als u de informatie heeft bekeken, in hoeverre herkent u dan uw eigen interacties met Google Home?"})
     identify_consumption_choices = [
-        props.Translatable({"en": f"I recognized my own interactions on {platform_name}",
+        props.Translatable({"en": f"I recognized my own interactions with {platform_name}",
                             "nl": f"Ik herkende mijn interacties met {platform_name}"}),
         props.Translatable({"en": f"I recognized my {platform_name} interactions and of those I share my account with",
                             "nl": f"Ik herkende mijn interacties met {platform_name} en die van anderen met wie ik mijn account deel"}),
@@ -261,14 +261,14 @@ def render_questionnaire():
                             "nl": f"Anders"})
     ]
 
-    enjoyment = props.Translatable({"en": "In case you looked at the data presented on this page, how interesting did you find looking at your data?", "nl": "Als u naar uw data hebt gekeken, hoe interessant vond u het om daar naar te kijken?"})
-    enjoyment_choices = [
-        props.Translatable({"en": "not at all interesting", "nl": "Helemaal niet interessant"}),
-        props.Translatable({"en": "somewhat uninteresting", "nl": "Een beetje oninteressant"}),
-        props.Translatable({"en": "neither interesting nor uninteresting", "nl": "Niet interessant, niet oninteressant"}),
-        props.Translatable({"en": "somewhat interesting", "nl": "Een beetje interessant"}),
-        props.Translatable({"en": "very interesting", "nl": "Erg interessant"})
-    ]
+    #enjoyment = props.Translatable({"en": "In case you looked at the data presented on this page, how interesting did you find looking at your data?", "nl": "Als u naar uw data hebt gekeken, hoe interessant vond u het om daar naar te kijken?"})
+    #enjoyment_choices = [
+    #    props.Translatable({"en": "not at all interesting", "nl": "Helemaal niet interessant"}),
+    #    props.Translatable({"en": "somewhat uninteresting", "nl": "Een beetje oninteressant"}),
+    #    props.Translatable({"en": "neither interesting nor uninteresting", "nl": "Niet interessant, niet oninteressant"}),
+    #    props.Translatable({"en": "somewhat interesting", "nl": "Een beetje interessant"}),
+    #    props.Translatable({"en": "very interesting", "nl": "Erg interessant"})
+    #]
 
     awareness = props.Translatable({"en": f"Did you know that {platform_name} collected this data about you?",
                                     "nl": f"Wist u dat {platform_name} deze gegevens over u verzamelde?"})
@@ -283,9 +283,9 @@ def render_questionnaire():
     })
 
     questions = [
-        props.PropsUIQuestionOpen(question=understanding, id=1),
+        #props.PropsUIQuestionOpen(question=understanding, id=1),
         props.PropsUIQuestionMultipleChoice(question=indentify_consumption, id=2, choices=identify_consumption_choices),
-        props.PropsUIQuestionMultipleChoice(question=enjoyment, id=3, choices=enjoyment_choices),
+        #props.PropsUIQuestionMultipleChoice(question=enjoyment, id=3, choices=enjoyment_choices),
         props.PropsUIQuestionMultipleChoice(question=awareness, id=4, choices=awareness_choices),
         props.PropsUIQuestionOpen(question=additional_comments, id=5),
     ]
@@ -304,34 +304,34 @@ def render_questionnaire():
 def render_questionnaire_no_donation():
     platform_name = "Google Home"
 
-    understanding = props.Translatable({
-        "en": "How would you describe the information you shared with the researchers at the University of Amsterdam?",
-        "nl": "Hoe zou u de informatie omschrijven die u heeft gedeeld met de onderzoekers van de Universiteit van Amsterdam?"
-    })
+    #understanding = props.Translatable({
+    #    "en": "How would you describe the information you shared with the researchers at the University of Amsterdam?",
+    #    "nl": "Hoe zou u de informatie omschrijven die u heeft gedeeld met de onderzoekers van de Universiteit van Amsterdam?"
+    #})
 
-    indentify_consumption = props.Translatable({"en": f"If you have viewed the information, to what extent do you recognize your own interactions with Google Home?",
-                                                "nl": f"Als u de informatie heeft bekeken, in hoeverre herkent u dan uw eigen interacties met Google Home?"})
-    identify_consumption_choices = [
-        props.Translatable({"en": f"I recognized my own interactions on {platform_name}",
-                            "nl": f"Ik herkende mijn interacties met {platform_name}"}),
-        props.Translatable({"en": f"I recognized my {platform_name} interactions and of those I share my account with",
-                            "nl": f"Ik herkende mijn interacties met {platform_name} en die van anderen met wie ik mijn account deel"}),
-        props.Translatable({"en": f"I recognized mostly the interactions of those I share my account with",
-                            "nl": f"Ik herkende vooral de interacties van anderen met wie ik mijn account deel"}),
-        props.Translatable({"en": f"I did not look at my data ",
-                            "nl": f"Ik heb niet naar mijn gegevens gekeken"}),
-        props.Translatable({"en": f"Other",
-                            "nl": f"Anders"})
-    ]
+    #indentify_consumption = props.Translatable({"en": f"If you have viewed the information, to what extent do you recognize your own interactions with Google Home?",
+    #                                            "nl": f"Als u de informatie heeft bekeken, in hoeverre herkent u dan uw eigen interacties met Google Home?"})
+    #identify_consumption_choices = [
+    #    props.Translatable({"en": f"I recognized my own interactions on {platform_name}",
+    #                        "nl": f"Ik herkende mijn interacties met {platform_name}"}),
+    #    props.Translatable({"en": f"I recognized my {platform_name} interactions and of those I share my account with",
+    #                        "nl": f"Ik herkende mijn interacties met {platform_name} en die van anderen met wie ik mijn account deel"}),
+    #    props.Translatable({"en": f"I recognized mostly the interactions of those I share my account with",
+    #                        "nl": f"Ik herkende vooral de interacties van anderen met wie ik mijn account deel"}),
+    #    props.Translatable({"en": f"I did not look at my data ",
+    #                        "nl": f"Ik heb niet naar mijn gegevens gekeken"}),
+    #    props.Translatable({"en": f"Other",
+    #                        "nl": f"Anders"})
+    #]
 
-    enjoyment = props.Translatable({"en": "In case you looked at the data presented on this page, how interesting did you find looking at your data?", "nl": "Als u naar uw data hebt gekeken, hoe interessant vond u het om daar naar te kijken?"})
-    enjoyment_choices = [
-        props.Translatable({"en": "not at all interesting", "nl": "Helemaal niet interessant"}),
-        props.Translatable({"en": "somewhat uninteresting", "nl": "Een beetje oninteressant"}),
-        props.Translatable({"en": "neither interesting nor uninteresting", "nl": "Niet interessant, niet oninteressant"}),
-        props.Translatable({"en": "somewhat interesting", "nl": "Een beetje interessant"}),
-        props.Translatable({"en": "very interesting", "nl": "Erg interessant"})
-    ]
+    #enjoyment = props.Translatable({"en": "In case you looked at the data presented on this page, how interesting did you find looking at your data?", "nl": "Als u naar uw data hebt gekeken, hoe interessant vond u het om daar naar te kijken?"})
+    #enjoyment_choices = [
+    #    props.Translatable({"en": "not at all interesting", "nl": "Helemaal niet interessant"}),
+    #    props.Translatable({"en": "somewhat uninteresting", "nl": "Een beetje oninteressant"}),
+    #    props.Translatable({"en": "neither interesting nor uninteresting", "nl": "Niet interessant, niet oninteressant"}),
+    #    props.Translatable({"en": "somewhat interesting", "nl": "Een beetje interessant"}),
+    #    props.Translatable({"en": "very interesting", "nl": "Erg interessant"})
+    #]
 
     awareness = props.Translatable({"en": f"Did you know that {platform_name} collected this data about you?",
                                     "nl": f"Wist u dat {platform_name} deze gegevens over u verzamelde?"})
@@ -346,9 +346,9 @@ def render_questionnaire_no_donation():
     })
 
     questions = [
-        props.PropsUIQuestionOpen(question=understanding, id=1),
-        props.PropsUIQuestionMultipleChoice(question=indentify_consumption, id=2, choices=identify_consumption_choices),
-        props.PropsUIQuestionMultipleChoice(question=enjoyment, id=3, choices=enjoyment_choices),
+        #props.PropsUIQuestionOpen(question=understanding, id=1),
+        #props.PropsUIQuestionMultipleChoice(question=indentify_consumption, id=2, choices=identify_consumption_choices),
+        #props.PropsUIQuestionMultipleChoice(question=enjoyment, id=3, choices=enjoyment_choices),
         props.PropsUIQuestionMultipleChoice(question=awareness, id=4, choices=awareness_choices),
         props.PropsUIQuestionOpen(question=NO_DONATION_REASONS, id=6),
         props.PropsUIQuestionOpen(question=additional_comments, id=5),
