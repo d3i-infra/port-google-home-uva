@@ -123,7 +123,29 @@ def assemble_tables_into_form(table_list: list[props.PropsUIPromptConsentFormTab
     """
     Assembles all donated data in consent form to be displayed
     """
-    return props.PropsUIPromptConsentForm(table_list, [])
+
+    description = props.Translatable({
+       "en": "Below you will find data about your own Google Home usage. Please review the data carefully and remove any information you do not wish to share. If you would like to share this data, click on the 'Yes, share for research' button at the bottom of this page. By sharing this data, you contribute to research on how families use Google Home.",
+       "nl": "Hieronder ziet u gegevens over uw eigen Google Home gebruik. Bekijk de gegevens zorgvuldig, en verwijder de gegevens die u niet wilt delen. Als u deze gegevens wilt delen, klik dan op de knop 'Ja, deel voor onderzoek' onderaan deze pagina. Door deze gegevens te delen draagt u bij aan onderzoek over hoe gezinnen Google Home gebruiken."
+    })
+
+    donate_question = props.Translatable({
+       "en": "Do you want to share this data for research?",
+       "nl": "Wilt u deze gegevens delen voor onderzoek?"
+    })
+
+    donate_button = props.Translatable({
+       "en": "Yes, share for resaerch",
+       "nl": "Ja, deel voor onderzoek"
+    })
+
+    return props.PropsUIPromptConsentForm(
+       table_list, 
+       [], 
+       description = description,
+       donate_question = donate_question,
+       donate_button = donate_button
+    )
 
 
 def donate_logs(key):
