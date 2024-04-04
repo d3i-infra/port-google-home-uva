@@ -135,7 +135,7 @@ def assemble_tables_into_form(table_list: list[props.PropsUIPromptConsentFormTab
     })
 
     donate_button = props.Translatable({
-       "en": "Yes, share for resaerch",
+       "en": "Yes, share for research",
        "nl": "Ja, deel voor onderzoek"
     })
 
