@@ -112,8 +112,8 @@ def process(session_id):
                     LOGGER.info("Skipped questionnaire no donation: %s", platform_name)
                     yield donate_logs(f"{session_id}-tracking")
 
-    yield render_end_page()
     yield exit(0, "Success")
+    yield render_end_page()
 
 
 
