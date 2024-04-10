@@ -300,8 +300,8 @@ def render_questionnaire():
     ]
 
     additional_comments = props.Translatable({
-        "en": "Do you have any additional comments about the donation? Please add them here.",
-        "nl": "Heeft u nog andere opmerkingen? Laat die hier achter."
+        "en": "You can now delete the file that you obtained from Google and stored in the download-folder of your device. If you have any additional comments about this part of the study, please add them here.",
+        "nl": "U kunt nu het bestand verwijderen dat u van Google heeft gekregen en dat is opgeslagen in de downloadmap van uw computer/laptop. Als u nog aanvullende opmerkingen heeft over dit deel van het onderzoek, laat ze hier achter."
     })
 
     questions = [
@@ -363,8 +363,8 @@ def render_questionnaire_no_donation():
     ]
 
     additional_comments = props.Translatable({
-        "en": "Do you have any additional comments about the donation? Please add them here.",
-        "nl": "Heeft u nog andere opmerkingen? Laat die hier achter."
+        "en": "You can now delete the file that you obtained from Google and stored in the download-folder of your device. If you have any additional comments about this part of the study, please add them here",
+        "nl": "U kunt nu het bestand verwijderen dat u van Google heeft gekregen en dat is opgeslagen in de downloadmap van uw computer/laptop. Als u nog aanvullende opmerkingen heeft over dit deel van het onderzoek, laat ze hier achter."
     })
 
     questions = [
