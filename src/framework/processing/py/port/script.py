@@ -69,6 +69,7 @@ def process(session_id):
                     else:
                         LOGGER.info("Skipped during retry %s", platform_name)
                         yield donate_logs(f"{session_id}-tracking")
+                        yield donate_status(f"{session_id}-SKIPPED-RETRY", "STARTED")
                         break
             else:
                 LOGGER.info("Skipped %s", platform_name)
@@ -91,6 +92,7 @@ def process(session_id):
                 LOGGER.info("Data donated; %s", platform_name)
                 yield donate_logs(f"{session_id}-tracking")
                 yield donate(platform_name, consent_result.value)
+                yield donate_status(f"{session_id}-DONATED", "DONATED")
 
                 questionnaire_results = yield render_questionnaire()
                 if questionnaire_results.__type__ == "PayloadJSON":
@@ -110,6 +112,7 @@ def process(session_id):
                     yield donate(f"{session_id}--{platform_name}-questionnaire-no-donation", render_questionnaire_results.value)
                 else:
                     LOGGER.info("Skipped questionnaire no donation: %s", platform_name)
+                    yield donate_status(f"{session_id}-{platform_name}-SKIP-REVIEW-CONSENT", "SKIP_REVIEW_CONSENT")
                     yield donate_logs(f"{session_id}-tracking")
 
     yield exit(0, "Success")
@@ -158,6 +161,10 @@ def donate_logs(key):
     return donate(key, json.dumps(log_data))
 
 
+def donate_status(filename: str, message: str):
+    return donate(filename, json.dumps({"status": message}))
+
+
 def create_empty_table(platform_name: str) -> props.PropsUIPromptConsentFormTable:
     """
     Show something in case no data was extracted
@@ -193,7 +200,7 @@ def extract_google_home(zipfile: str, validation: validate.ValidateInput) -> lis
             "en": "You can see at what day and time what command was understood by the assistant and what the device might have said or done in response. You have the option to select specific rows in the table and remove them if you do not want to share them with us. Below the table you see a word cloud of the most frequent words in your commands. The bigger the word the more often it was used. You can click on the magnifying glass to make the word cloud bigger.", 
             "nl": "U kunt zien op welke dag en tijd welk commando werd begrepen door de assistent en wat het apparaat mogelijk heeft gezegd of gedaan als reactie. U hebt de optie om specifieke rijen in de tabel te selecteren en te verwijderen als u ze niet met ons wilt delen. Onder de tabel ziet u een woordwolk van de meest voorkomende woorden in uw commando's. Hoe grooter het woord, hoe vaaker het werd gebruikt. U kunt op het vergrootglas klikken om de woordenwolk groter te maken.", 
         })
-        table =  props.PropsUIPromptConsentFormTable("google_home_unique_key_here", table_title, df, table_description, [wordcloud])
+        table =  props.PropsUIPromptConsentFormTable("google_home_data", table_title, df, table_description, [wordcloud])
         tables_to_render.append(table)
 
     return tables_to_render
