@@ -84,6 +84,7 @@ def process(session_id):
             # Check if extract something got extracted
             if len(table_list) == 0:
                 table_list.append(create_empty_table(platform_name))
+                yield donate_status(f"{session_id}-EMPTY", "EMPTY")
 
             prompt = assemble_tables_into_form(table_list)
             consent_result = yield render_donation_page(platform_name, prompt)
