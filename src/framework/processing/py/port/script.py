@@ -279,16 +279,16 @@ def render_questionnaire():
     indentify_consumption = props.Translatable({"en": f"If you have viewed the information, to what extent do you recognize your own interactions with Google Assistant?",
                                                 "nl": f"Als u de informatie heeft bekeken, in hoeverre herkent u dan uw eigen interacties met Google Assistent?"})
     identify_consumption_choices = [
-        props.Translatable({"en": f"I recognized my own interactions with Google Assistant",
-                            "nl": f"Ik herkende mijn interacties met Google Assistent"}),
-        props.Translatable({"en": f"I recognized the interactions with Google Assistant of myself and of those I share my account with",
-                            "nl": f"Ik herkende mijn interacties met Google Assistent en die van anderen met wie ik mijn account deel"}),
-        props.Translatable({"en": f"I recognized mostly the interactions with Google Assistant of those I share my account with",
-                            "nl": f"Ik herkende vooral de interacties met Google Assistent van anderen met wie ik mijn account deel"}),
-        props.Translatable({"en": f"I did not look at my data ",
-                            "nl": f"Ik heb niet naar mijn gegevens gekeken"}),
-        props.Translatable({"en": f"Other",
-                            "nl": f"Anders"})
+        props.Translatable({"en": f"I recognized my own interactions with Google Assistant.",
+                            "nl": f"Ik herkende mijn interacties met Google Assistent."}),
+        props.Translatable({"en": f"I recognized the interactions with Google Assistant of myself and of those I share my account with.",
+                            "nl": f"Ik herkende mijn interacties met Google Assistent en die van anderen met wie ik mijn account deel."}),
+        props.Translatable({"en": f"I recognized mostly the interactions with Google Assistant of those I share my account with.",
+                            "nl": f"Ik herkende vooral de interacties met Google Assistent van anderen met wie ik mijn account deel."}),
+        props.Translatable({"en": f"I did not look at my data.",
+                            "nl": f"Ik heb niet naar mijn gegevens gekeken."}),
+        props.Translatable({"en": f"Other.",
+                            "nl": f"Anders."})
     ]
 
     #enjoyment = props.Translatable({"en": "In case you looked at the data presented on this page, how interesting did you find looking at your data?", "nl": "Als u naar uw data hebt gekeken, hoe interessant vond u het om daar naar te kijken?"})
@@ -308,8 +308,8 @@ def render_questionnaire():
     ]
 
     additional_comments = props.Translatable({
-        "en": "You can now delete the file that you obtained from Google and stored in the download-folder of your device. If you have any additional comments about this part of the study, please add them here.",
-        "nl": "U kunt nu het bestand verwijderen dat u van Google heeft gekregen en dat is opgeslagen in de downloadmap van uw computer/laptop. Als u nog aanvullende opmerkingen heeft over dit deel van het onderzoek, laat ze hier achter."
+        "en": "You can now delete the file that you obtained from Google and stored in the download-folder of your device. If you have any additional comments about this part of the study, please add them here:",
+        "nl": "U kunt nu het bestand verwijderen dat u van Google heeft gekregen en dat is opgeslagen in de downloadmap van uw computer/laptop. Als u nog aanvullende opmerkingen heeft over dit deel van het onderzoek, laat ze hier achter:"
     })
 
     questions = [
@@ -320,7 +320,7 @@ def render_questionnaire():
         props.PropsUIQuestionOpen(question=additional_comments, id=5),
     ]
 
-    description = props.Translatable({"en": "Below you can find a couple of questions about the data donation process", "nl": "Hieronder vindt u een paar vragen over het data donatie proces"})
+    description = props.Translatable({"en": "Below you can find a couple of questions about the data donation process:", "nl": "Hieronder vindt u een paar vragen over het data donatie proces:"})
     header = props.PropsUIHeader(props.Translatable({"en": "Questionnaire", "nl": "Vragenlijst"}))
     body = props.PropsUIPromptQuestionnaire(questions=questions, description=description)
     footer = props.PropsUIFooter()
@@ -371,8 +371,8 @@ def render_questionnaire_no_donation():
     ]
 
     additional_comments = props.Translatable({
-        "en": "You can now delete the file that you obtained from Google and stored in the download-folder of your device. If you have any additional comments about this part of the study, please add them here",
-        "nl": "U kunt nu het bestand verwijderen dat u van Google heeft gekregen en dat is opgeslagen in de downloadmap van uw computer/laptop. Als u nog aanvullende opmerkingen heeft over dit deel van het onderzoek, laat ze hier achter."
+        "en": "You can now delete the file that you obtained from Google and stored in the download-folder of your device. If you have any additional comments about this part of the study, please add them here:",
+        "nl": "U kunt nu het bestand verwijderen dat u van Google heeft gekregen en dat is opgeslagen in de downloadmap van uw computer/laptop. Als u nog aanvullende opmerkingen heeft over dit deel van het onderzoek, laat ze hier achter:"
     })
 
     questions = [
@@ -384,7 +384,7 @@ def render_questionnaire_no_donation():
         props.PropsUIQuestionOpen(question=additional_comments, id=5),
     ]
 
-    description = props.Translatable({"en": "Below you can find a couple of questions about the data donation process", "nl": "Hieronder vind u een paar vragen over het data donatie process"})
+    description = props.Translatable({"en": "Below you can find a couple of questions about the data donation process:", "nl": "Hieronder vindt u een paar vragen over het data donatie proces:"})
     header = props.PropsUIHeader(props.Translatable({"en": "Questionnaire", "nl": "Vragenlijst"}))
     body = props.PropsUIPromptQuestionnaire(questions=questions, description=description)
     footer = props.PropsUIFooter()
